@@ -55,6 +55,8 @@ public class HandlerSocketConnector extends SocketChannelController {
 	private final int connectionPoolSize; // session pool size
 	protected Protocol protocol;
 
+	private volatile boolean allowAutoReconnect = true;
+
 	private final CommandFactory commandFactory;
 
 	/**
@@ -243,8 +245,6 @@ public class HandlerSocketConnector extends SocketChannelController {
 		return session;
 	}
 
-	 
-	
 	public CopyOnWriteArrayList<Session> getSessionList() {
 		return this.sessionList;
 	}
@@ -285,6 +285,14 @@ public class HandlerSocketConnector extends SocketChannelController {
 
 	}
 
+	public boolean isAllowAutoReconnect() {
+		return this.allowAutoReconnect;
+	}
+
+	public void setAllowAutoReconnect(boolean allowAutoReconnect) {
+		this.allowAutoReconnect = allowAutoReconnect;
+	}
+
 	public HandlerSocketConnector(Configuration configuration,
 			CommandFactory commandFactory, int poolSize) {
 		super(configuration, null);
@@ -303,6 +311,7 @@ public class HandlerSocketConnector extends SocketChannelController {
 		HandlerSocketSession session = new HandlerSocketSession(sessionCofig,
 				this.configuration.getSessionReadBufferSize(), this
 						.getReadThreadCount(), this.commandFactory);
+		session.setAllowReconnect(this.allowAutoReconnect);
 		return session;
 	}
 

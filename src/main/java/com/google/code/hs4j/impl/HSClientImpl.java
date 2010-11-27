@@ -361,6 +361,40 @@ public class HSClientImpl implements HSClient {
 
 	}
 
+	public void setHealConnectionInterval(long interval) {
+		this.connector.setHealSessionInterval(interval);
+	}
+
+	public long getHealConnectionInterval() {
+		if (null != this.connector) {
+			return this.connector.getHealSessionInterval();
+		}
+		return -1L;
+	}
+
+	public boolean isAllowAutoReconnect() {
+		if (null != this.connector) {
+			return this.connector.isAllowAutoReconnect();
+		}
+		return false;
+	}
+
+	public void setAllowAutoReconnect(boolean allowAutoReconnect) {
+		if (null != this.connector) {
+			this.connector.setAllowAutoReconnect(allowAutoReconnect);
+		}
+	}
+
+	/**
+	 * Set tcp socket option
+	 * 
+	 * @param socketOption
+	 * @param value
+	 */
+	public <T> void setSocketOption(SocketOption<T> socketOption, T value) {
+		this.socketOptions.put(socketOption, value);
+	}
+
 	public synchronized void shutdown() throws IOException {
 		if (!this.started) {
 			return;

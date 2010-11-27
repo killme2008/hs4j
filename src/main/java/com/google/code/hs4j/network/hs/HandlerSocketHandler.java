@@ -11,12 +11,15 @@
  */
 package com.google.code.hs4j.network.hs;
 
+import java.net.InetSocketAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.hs4j.Command;
 import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.impl.HSClientImpl;
+import com.google.code.hs4j.impl.ReconnectRequest;
 import com.google.code.hs4j.network.core.Session;
 import com.google.code.hs4j.network.core.impl.HandlerAdapter;
 
@@ -58,13 +61,13 @@ public class HandlerSocketHandler extends HandlerAdapter {
 	@Override
 	public final void onSessionClosed(Session session) {
 		this.hsClient.getConnector().removeSession(session);
-		HandlerSocketSession memcachedSession = (HandlerSocketSession) session;
-		// destroy memached session
-		memcachedSession.destroy();
-		// if (client.getConnector().isStarted()
-		// && memcachedSession.isAllowReconnect()) {
-		// reconnect(session);
-		// }
+		HandlerSocketSession hSession = (HandlerSocketSession) session;
+
+		hSession.destroy();
+		if (this.hsClient.getConnector().isStarted()
+				&& hSession.isAllowReconnect()) {
+			this.reconnect(session);
+		}
 		// TOOD 处理重连
 		for (HSClientStateListener listener : this.hsClient
 				.getHSClientStateListeners()) {
@@ -73,4 +76,21 @@ public class HandlerSocketHandler extends HandlerAdapter {
 		}
 	}
 
+	/**
+	 * Auto reconect to memcached server
+	 * 
+	 * @param session
+	 */
+	protected void reconnect(Session session) {
+		if (this.hsClient.isStarted()) {
+			log.debug("Add reconnectRequest to connector "
+					+ session.getRemoteSocketAddress());
+			HandlerSocketSession hSession = (HandlerSocketSession) session;
+			InetSocketAddress inetSocketAddressWrapper = hSession
+					.getRemoteSocketAddress();
+			this.hsClient.getConnector().addToWatingQueue(
+					new ReconnectRequest(inetSocketAddressWrapper, 0,
+							this.hsClient.getHealConnectionInterval()));
+		}
+	}
 }

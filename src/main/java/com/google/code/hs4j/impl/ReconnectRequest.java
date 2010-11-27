@@ -26,8 +26,6 @@ public final class ReconnectRequest implements Delayed {
 	private final InetSocketAddress remoteAddr;
 	private int tries;
 
-	private int weight;
-
 	private static final long MIN_RECONNECT_INTERVAL = 1000;
 
 	private static final long MAX_RECONNECT_INTERVAL = 60 * 1000;
@@ -35,11 +33,10 @@ public final class ReconnectRequest implements Delayed {
 	private volatile long nextReconnectTimestamp;
 
 	public ReconnectRequest(InetSocketAddress remoteAddr, int tries,
-			int weight, long reconnectInterval) {
+			long reconnectInterval) {
 		super();
 		this.remoteAddr = remoteAddr;
 		this.setTries(tries); // record reconnect times
-		this.weight = weight;
 		reconnectInterval = this.normalInterval(reconnectInterval);
 		this.nextReconnectTimestamp = System.currentTimeMillis()
 				+ reconnectInterval;
@@ -84,14 +81,6 @@ public final class ReconnectRequest implements Delayed {
 
 	public final int getTries() {
 		return this.tries;
-	}
-
-	public final int getWeight() {
-		return this.weight;
-	}
-
-	public final void setWeight(int weight) {
-		this.weight = weight;
 	}
 
 }

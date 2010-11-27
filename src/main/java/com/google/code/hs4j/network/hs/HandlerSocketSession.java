@@ -41,7 +41,7 @@ public class HandlerSocketSession extends NioTCPSession {
 
 	private SocketAddress remoteSocketAddress; // prevent channel is closed
 
-	private volatile boolean allowReconnect;
+	private volatile boolean allowReconnect = true;
 
 	public HandlerSocketSession(NioSessionConfig sessionConfig,
 			int readRecvBufferSize, int readThreadCount,
