@@ -1,9 +1,21 @@
+/**
+ *Copyright [2010-2011] [dennis zhuang(killme2008@gmail.com)]
+ *Licensed under the Apache License, Version 2.0 (the "License");
+ *you may not use this file except in compliance with the License. 
+ *You may obtain a copy of the License at 
+ *             http://www.apache.org/licenses/LICENSE-2.0 
+ *Unless required by applicable law or agreed to in writing, 
+ *software distributed under the License is distributed on an "AS IS" BASIS, 
+ *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+ *either express or implied. See the License for the specific language governing permissions and limitations under the License
+ */
 package com.google.code.hs4j.impl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,6 +32,7 @@ import com.google.code.hs4j.IndexSession;
 import com.google.code.hs4j.command.text.TextCommandFactory;
 import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.config.Configuration;
+import com.google.code.hs4j.network.core.Session;
 import com.google.code.hs4j.network.core.SocketOption;
 import com.google.code.hs4j.network.core.impl.StandardSocketOption;
 import com.google.code.hs4j.network.hs.HandlerSocketConnector;
@@ -127,7 +140,21 @@ public class HSClientImpl implements HSClient {
 	 * @throws IOException
 	 */
 	public HSClientImpl(String hostname, int port) throws IOException {
-		this(new InetSocketAddress(hostname, port));
+		this(hostname, port, 1);
+	}
+
+	/**
+	 * New a HSFClient instance with host and port
+	 * 
+	 * @param hostname
+	 *            HandlerSocket hostname
+	 * @param port
+	 *            HandlerSocket port
+	 * @throws IOException
+	 */
+	public HSClientImpl(String hostname, int port, int poolSize)
+			throws IOException {
+		this(new InetSocketAddress(hostname, port), poolSize);
 	}
 
 	/**
@@ -138,7 +165,19 @@ public class HSClientImpl implements HSClient {
 	 * @throws IOException
 	 */
 	public HSClientImpl(InetSocketAddress inetSocketAddress) throws IOException {
-		this(new TextCommandFactory(), inetSocketAddress);
+		this(inetSocketAddress, 1);
+	}
+
+	/**
+	 * New a HSFClient instance with a InetSocketAddress and poolSize
+	 * 
+	 * @param inetSocketAddress
+	 *            HandlerSocket address
+	 * @throws IOException
+	 */
+	public HSClientImpl(InetSocketAddress inetSocketAddress, int poolSize)
+			throws IOException {
+		this(new TextCommandFactory(), inetSocketAddress, poolSize);
 	}
 
 	/**
@@ -150,7 +189,7 @@ public class HSClientImpl implements HSClient {
 	 * @throws IOException
 	 */
 	public HSClientImpl(CommandFactory commandFactory,
-			InetSocketAddress remoteAddr) throws IOException {
+			InetSocketAddress remoteAddr, int poolSize) throws IOException {
 		super();
 		if (commandFactory == null) {
 			throw new NullPointerException("null commandFactory");
@@ -158,9 +197,13 @@ public class HSClientImpl implements HSClient {
 		if (remoteAddr == null) {
 			throw new NullPointerException("null remoteAddr");
 		}
+		if (poolSize <= 0) {
+			throw new IllegalArgumentException(
+					"poolSize must be greater than zero");
+		}
 		this.commandFactory = commandFactory;
 		this.remoteAddr = remoteAddr;
-		this.initConnectorAndConnect(commandFactory, remoteAddr);
+		this.initConnectorAndConnect(commandFactory, remoteAddr, poolSize);
 	}
 
 	public InetSocketAddress getRemoteAddr() {
@@ -168,7 +211,7 @@ public class HSClientImpl implements HSClient {
 	}
 
 	private void initConnectorAndConnect(CommandFactory commandFactory,
-			InetSocketAddress remoteAddr) throws IOException {
+			InetSocketAddress remoteAddr, int poolSize) throws IOException {
 		this.connector = new HandlerSocketConnector(getDefaultConfiguration(),
 				commandFactory, 1);
 		this.ioHandler = new HandlerSocketHandler(this);
@@ -177,14 +220,16 @@ public class HSClientImpl implements HSClient {
 		this.connector.setSessionTimeout(-1);
 		this.connector.setSocketOptions(this.socketOptions);
 		this.connector.start();
-		try {
-			if (!this.connector.connect(remoteAddr).get(
-					DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)) {
-				throw new IOException("Connect to " + remoteAddr + " fail");
+		for (int i = 0; i < poolSize; i++) {
+			try {
+				if (!this.connector.connect(remoteAddr).get(
+						DEFAULT_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)) {
+					throw new IOException("Connect to " + remoteAddr + " fail");
+				}
+			} catch (Exception e) {
+				throw new IOException("Connect to " + remoteAddr
+						+ " fail,cause by:" + e.getMessage());
 			}
-		} catch (Exception e) {
-			throw new IOException("Connect to " + remoteAddr
-					+ " fail,cause by:" + e.getMessage());
 		}
 		this.started = true;
 	}
@@ -278,11 +323,21 @@ public class HSClientImpl implements HSClient {
 		IndexRecord record = new IndexRecord(indexId, dbname, tableName,
 				indexName, columns);
 		this.indexMap.put(indexId, record);
-		Command cmd = this.commandFactory.createOpenIndexCommand(String
-				.valueOf(indexId), dbname, tableName, indexName, columns);
-		this.connector.send(cmd);
-		this.awaitResponse(cmd);
-		return cmd.getResponseStatus() == 0;
+
+		List<Session> sessionList = this.connector.getSessionList();
+		if (sessionList == null || sessionList.isEmpty()) {
+			throw new HandlerSocketException("Empty connections");
+		}
+
+		boolean result = true;
+		for (Session session : sessionList) {
+			Command cmd = this.commandFactory.createOpenIndexCommand(String
+					.valueOf(indexId), dbname, tableName, indexName, columns);
+			session.write(cmd);
+			this.awaitResponse(cmd);
+			result = result && cmd.getResponseStatus() == 0;
+		}
+		return result;
 
 	}
 

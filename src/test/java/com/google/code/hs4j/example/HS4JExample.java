@@ -14,7 +14,7 @@ public class HS4JExample {
 		// 108, 109, 101, 50, 48, 48, 56, 64, 103, 109, 97, 105, 108, 46, 99,
 		// 111, 109, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 		HSClient client = new HSClientImpl(new TextCommandFactory(),
-				new InetSocketAddress(9999));
+				new InetSocketAddress(9999), 5);
 		final String[] fieldList = { "user_id", "user_name", "user_email", };
 		System.out.println(client.openIndex(0, "mytest", "user", "INDEX_01",
 				fieldList));
@@ -29,11 +29,13 @@ public class HS4JExample {
 		System.out.println(client.insert(0, values));
 
 		values = new String[] { "dennis" };
-		rs = client.find(0, values);
-		while (rs.next()) {
-			System.out.println(rs.getString("user_name"));
-			System.out.println(rs.getString("user_email"));
-			// System.out.println(rs.getString("created"));
+		for (int i = 0; i < 1000; i++) {
+			rs = client.find(0, values);
+			while (rs.next()) {
+				System.out.println(rs.getString("user_name"));
+				System.out.println(rs.getString("user_email"));
+				// System.out.println(rs.getString("created"));
+			}
 		}
 
 		System.out.println(client.delete(0, values, FindOperator.EQ));

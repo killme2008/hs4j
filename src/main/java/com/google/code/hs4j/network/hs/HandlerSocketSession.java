@@ -13,8 +13,6 @@ package com.google.code.hs4j.network.hs;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.SocketException;
-import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,29 +40,14 @@ public class HandlerSocketSession extends NioTCPSession {
 	private final AtomicReference<Command> currentCommand = new AtomicReference<Command>();
 
 	private SocketAddress remoteSocketAddress; // prevent channel is closed
-	private int sendBufferSize;
 
 	private volatile boolean allowReconnect;
-
-	private final CommandFactory commandFactory;
 
 	public HandlerSocketSession(NioSessionConfig sessionConfig,
 			int readRecvBufferSize, int readThreadCount,
 			CommandFactory commandFactory) {
 		super(sessionConfig, readRecvBufferSize);
-		if (this.selectableChannel != null) {
-			this.remoteSocketAddress = ((SocketChannel) this.selectableChannel)
-					.socket().getRemoteSocketAddress();
-			this.allowReconnect = true;
-			try {
-				this.sendBufferSize = ((SocketChannel) this.selectableChannel)
-						.socket().getSendBufferSize();
-			} catch (SocketException e) {
-				this.sendBufferSize = 8 * 1024;
-			}
-		}
 		this.commandAlreadySent = new LinkedTransferQueue<Command>();
-		this.commandFactory = commandFactory;
 	}
 
 	@Override
@@ -147,10 +130,5 @@ public class HandlerSocketSession extends NioTCPSession {
 
 	public final void takeCurrentCommand() {
 		this.setCurrentCommand(this.takeExecutingCommand());
-	}
-
-	// TODO
-	public void quit() {
-		// this.write(this.commandFactory.createQuitCommand());
 	}
 }
