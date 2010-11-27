@@ -7,9 +7,9 @@ import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.hs.HandlerSocketSession;
 
 public interface Command {
-	public void setException(Throwable t);
+	public void setExceptionMessage(String t);
 
-	public Throwable getException();
+	public String getExceptionMessage();
 
 	public Object getResult();
 

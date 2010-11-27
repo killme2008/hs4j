@@ -47,6 +47,7 @@ public class InsertCommand extends AbstractCommand {
 		}
 
 		buf.flip();
+		//System.out.println(Arrays.toString(buf.array()));
 		this.buffer = buf;
 
 	}

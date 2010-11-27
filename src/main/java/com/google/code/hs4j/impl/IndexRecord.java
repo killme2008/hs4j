@@ -7,13 +7,13 @@ package com.google.code.hs4j.impl;
  * @date 2010-11-27
  */
 public class IndexRecord {
-	public final String id;
+	public final int id;
 	public final String db;
 	public final String tableName;
 	public final String indexName;
 	public final String[] fieldList;
 
-	public IndexRecord(String id, String db, String tableName,
+	public IndexRecord(int id, String db, String tableName,
 			String indexName, String[] fieldList) {
 		super();
 		this.id = id;

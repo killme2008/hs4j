@@ -37,10 +37,10 @@ public class HSClientImpl implements HSClient {
 
 	private final Map<SocketOption, Object> socketOptions = getDefaultSocketOptions();
 
-	private final ConcurrentHashMap<String/* index id */, IndexRecord/*
-																	 * index
-																	 * info
-																	 */> indexMap = new ConcurrentHashMap<String, IndexRecord>();
+	private final ConcurrentHashMap<Integer/* index id */, IndexRecord/*
+																		 * index
+																		 * info
+																		 */> indexMap = new ConcurrentHashMap<Integer, IndexRecord>();
 
 	private final CopyOnWriteArrayList<HSClientStateListener> hsClientStateListeners = new CopyOnWriteArrayList<HSClientStateListener>();
 
@@ -115,50 +115,92 @@ public class HSClientImpl implements HSClient {
 		return this.connector;
 	}
 
-	public ResultSet find(String id, String[] values, FindOperator operator,
+	public ResultSet find(int indexId, String[] values, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		IndexRecord indexRecord = this.indexMap.get(id);
-		Command cmd = this.commandFactory.createFindCommand(id, operator,
-				values, limit, offset, indexRecord.fieldList);
+		IndexRecord indexRecord = this.getRecord(indexId);
+		Command cmd = this.commandFactory.createFindCommand(String
+				.valueOf(indexId), operator, values, limit, offset,
+				indexRecord.fieldList);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return (ResultSet) cmd.getResult();
 	}
 
-	public ResultSet find(String id, String[] values)
-			throws InterruptedException, TimeoutException,
-			HandlerSocketException {
-		return this.find(id, values, FindOperator.EQ, 1, 0);
+	private IndexRecord getRecord(int indexId) throws HandlerSocketException {
+		IndexRecord indexRecord = this.indexMap.get(indexId);
+		if (indexRecord == null) {
+			throw new HandlerSocketException("Please open index first,indexId="
+					+ indexId);
+		}
+		return indexRecord;
 	}
 
-	public boolean insert(String id, String[] values)
+	public ResultSet find(int indexId, String[] values)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		IndexRecord indexRecord = this.indexMap.get(id);
-		Command cmd = this.commandFactory.createOpenIndexCommand(id,
-				indexRecord.db, indexRecord.tableName, indexRecord.indexName,
-				indexRecord.fieldList);
+		return this.find(indexId, values, FindOperator.EQ, 1, 0);
+	}
+
+	public boolean insert(int indexId, String[] values)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException {
+		Command cmd = this.commandFactory.createInsertCommand(String
+				.valueOf(indexId), values);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
 
 	}
 
+	public int delete(int indexId, String[] values, FindOperator operator,
+			int limit, int offset) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		IndexRecord indexRecord = this.getRecord(indexId);
+		Command cmd = this.commandFactory.createDeleteCommand(String
+				.valueOf(indexId), operator, values, limit, offset,
+				indexRecord.fieldList);
+		this.connector.send(cmd);
+		this.awaitResponse(cmd);
+		return (Integer) cmd.getResult();
+	}
+
+	public int delete(int indexId, String[] values, FindOperator operator)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException {
+		return this.delete(indexId, values, operator, 1, 0);
+	}
+
+	public int update(int indexId, String[] values, FindOperator operator,
+			int limit, int offset) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		IndexRecord indexRecord = this.getRecord(indexId);
+		Command cmd = this.commandFactory.createUpdateCommand(String
+				.valueOf(indexId), operator, values, limit, offset,
+				indexRecord.fieldList);
+		this.connector.send(cmd);
+		this.awaitResponse(cmd);
+		return (Integer) cmd.getResult();
+	}
+
+	public int update(int indexId, String[] values, FindOperator operator)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException {
+		return this.update(indexId, values, operator, 1, 0);
+	}
+
 	public boolean isStarted() {
 		return this.started;
 	}
 
-	public boolean openIndex(String id, String db, String tableName,
+	public boolean openIndex(int indexId, String db, String tableName,
 			String indexName, String[] fieldList) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		IndexRecord record = new IndexRecord(id, db, tableName, indexName,
+		IndexRecord record = new IndexRecord(indexId, db, tableName, indexName,
 				fieldList);
-		if (this.indexMap.put(id, record) != null) {
-			throw new HandlerSocketException("Duplicate index id:" + id);
-		}
-		Command cmd = this.commandFactory.createOpenIndexCommand(id, db,
-				tableName, indexName, fieldList);
+		this.indexMap.put(indexId, record);
+		Command cmd = this.commandFactory.createOpenIndexCommand(String
+				.valueOf(indexId), db, tableName, indexName, fieldList);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
@@ -166,10 +208,13 @@ public class HSClientImpl implements HSClient {
 	}
 
 	private void awaitResponse(Command cmd) throws InterruptedException,
-			TimeoutException {
+			TimeoutException, HandlerSocketException {
 		if (!cmd.await(this.opTimeout, TimeUnit.MILLISECONDS)) {
 			throw new TimeoutException("Operation timeout in " + this.opTimeout
 					+ " ms.");
+		}
+		if (cmd.getExceptionMessage() != null) {
+			throw new HandlerSocketException(cmd.getExceptionMessage());
 		}
 	}
 
@@ -192,20 +237,38 @@ public class HSClientImpl implements HSClient {
 	}
 
 	public static void main(String[] args) throws Exception {
-		//[48, 9, 61, 9, 49, 9, 107, 101, 118, 105, 110, 9, 49, 9, 48, 10]
-		//[48, 9, 61, 9, 49, 9, 107, 101, 118, 105, 110, 9, 49, 9, 48, 10, 0, 0, 0, 0, 0]
+		// [48, 9, 43, 9, 50, 9, 100, 101, 110, 110, 105, 115, 9, 107, 105, 108,
+		// 108, 109, 101, 50, 48, 48, 56, 64, 103, 109, 97, 105, 108, 46, 99,
+		// 111, 109, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 		HSClient client = new HSClientImpl(new TextCommandFactory(),
-				new InetSocketAddress(9998));
-		final String[] fieldList = { "user_name", "user_email", "created" };
-		System.out.println(client.openIndex("0", "mytest", "user", "INDEX_01",
+				new InetSocketAddress(9999));
+		final String[] fieldList = { "user_id", "user_name", "user_email", };
+		System.out.println(client.openIndex(0, "mytest", "user", "INDEX_01",
 				fieldList));
-		String[] values = { "kevin","John" };
-		ResultSet rs=client.find("0", values);
-		System.out.println(rs);
-		while(rs.next()){
+		String[] values = { "kevin" };
+		ResultSet rs = client.find(0, values);
+		while (rs.next()) {
 			System.out.println(rs.getString("user_name"));
 			System.out.println(rs.getString("user_email"));
-			System.out.println(rs.getString("created"));
+			System.out.println(rs.getString("user_id"));
+		}
+		values = new String[] { "4", "dennis", "test@gmail.com" };
+		System.out.println(client.insert(0, values));
+
+		values = new String[] { "dennis" };
+		rs = client.find(0, values);
+		while (rs.next()) {
+			System.out.println(rs.getString("user_name"));
+			System.out.println(rs.getString("user_email"));
+			// System.out.println(rs.getString("created"));
+		}
+
+		System.out.println(client.delete(0, values, FindOperator.EQ));
+		rs = client.find(0, values);
+		while (rs.next()) {
+			System.out.println(rs.getString("user_name"));
+			System.out.println(rs.getString("user_email"));
+			// System.out.println(rs.getString("created"));
 		}
 	}
 

@@ -1,5 +1,6 @@
 package com.google.code.hs4j.command;
 
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,7 @@ public abstract class AbstractCommand implements Command {
 	protected IoBuffer buffer;
 	protected Object result;
 	private Future<Boolean> writeFuture;
-	private Throwable exception;
+	private String exceptionMsg;
 
 	public AbstractCommand() {
 		super();
@@ -55,8 +56,13 @@ public abstract class AbstractCommand implements Command {
 		return this.buffer;
 	}
 
-	public Throwable getException() {
-		return this.exception;
+	public String getExceptionMessage() {
+		return this.exceptionMsg;
+	}
+
+	public void setExceptionMessage(String t) {
+		this.exceptionMsg = t;
+
 	}
 
 	public Object getResult() {
@@ -65,11 +71,6 @@ public abstract class AbstractCommand implements Command {
 
 	public Future<Boolean> getWriteFuture() {
 		return this.writeFuture;
-	}
-
-	public void setException(Throwable t) {
-		this.exception = t;
-		this.countDown();
 	}
 
 	public void setWriteFuture(Future<Boolean> future) {
@@ -181,7 +182,16 @@ public abstract class AbstractCommand implements Command {
 			case BODY:
 				int index = TERMIATER_MATCHER.matchFirst(buffer);
 				if (index > 0) {
-					this.decodeBody(session, buffer, index);
+					if (this.responseStatus == 0) {
+						this.decodeBody(session, buffer, index);
+					} else {
+						byte[] data = new byte[index - buffer.position()];
+						buffer.get(data);
+						// skip terminator
+						buffer.position(buffer.position() + 1);
+						this.setExceptionMessage("Error message from server:"
+								+ this.encodingString(data));
+					}
 					this.currentState = ParseState.DONE;
 					continue;
 				} else {
@@ -193,6 +203,15 @@ public abstract class AbstractCommand implements Command {
 			}
 		}
 
+	}
+
+	public String encodingString(byte[] data) {
+		try {
+			return new String(data, this.encoding);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException("Unsupported encoding:" + this.encoding,
+					e);
+		}
 	}
 
 	public void decodeBody(HandlerSocketSession session, IoBuffer buffer,

@@ -14,23 +14,173 @@ import com.google.code.hs4j.exception.HandlerSocketException;
  */
 public interface HSClient {
 
+	/**
+	 * Set operation timeout,if response does'nt return in this time,it will
+	 * throw TimeoutException,ten seconds by default.
+	 * 
+	 * @param opTimeout
+	 */
 	public void setOpTimeout(long opTimeout);
 
+	/**
+	 * Whether the client is started;
+	 * 
+	 * @return
+	 */
 	public boolean isStarted();
 
-	public boolean openIndex(String id, String db, String table, String index,
-			String[] fieldList) throws InterruptedException, TimeoutException,
-			HandlerSocketException;
+	/**
+	 * Once an 'open_index' request is issued, the HandlerSocket plugin opens
+	 * the specified index and keep it open until the client connection is
+	 * closed. Each open index is identified by indexid. If indexid is already
+	 * open, the old open index is closed. You can open the same combination of
+	 * dbname tablename indexname multple times, possibly with different
+	 * columns. For efficiency, keep indexid small as far as possible.
+	 * 
+	 * @param indexId
+	 * @param dbname
+	 * @param tableName
+	 * @param indexName
+	 * @param columns
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public boolean openIndex(int indexId, String dbname, String tableName,
+			String indexName, String[] columns) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
 
-	public ResultSet find(String id, String[] values, FindOperator operator,
+	/**
+	 * Getting data from mysql
+	 * 
+	 * @param indexId
+	 *            This number must be an indexId specified by a 'open_index'
+	 *            request executed previously on the same connection.
+	 * 
+	 * @param values
+	 *            values to compare with index keys
+	 * @param operator
+	 *            specifies the comparison operation to use
+	 * @param limit
+	 *            limit fetch count
+	 * @param offset
+	 *            fetch offset
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public ResultSet find(int indexId, String[] values, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException;
 
-	public ResultSet find(String id, String[] values)
+	/**
+	 * Get data from mysql,set limit to 1, offset to 0 and operator to '='
+	 * 
+	 * @see find
+	 * @param indexId
+	 * @param values
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public ResultSet find(int indexId, String[] values)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 
-	public boolean insert(String id, String[] values)
+	/**
+	 * Update data
+	 * 
+	 * @param indexId
+	 *            This number must be an indexId specified by a 'open_index'
+	 *            request executed previously on the same connection.
+	 * 
+	 * @param values
+	 *            values to compare with index keys
+	 * @param operator
+	 *            specifies the comparison operation to use
+	 * @param limit
+	 *            limit fetch count
+	 * @param offset
+	 *            fetch offset
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int update(int indexId, String[] values, FindOperator operator,
+			int limit, int offset) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
+
+	/**
+	 * Update data,set limit to 1 and offset to 0.
+	 * 
+	 * @see update
+	 * @param indexId
+	 * @param values
+	 * @param operator
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int update(int indexId, String[] values, FindOperator operator)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
+
+	/**
+	 * Delete data from mysql
+	 * 
+	 * @param indexId
+	 *            This number must be an indexId specified by a 'open_index'
+	 *            request executed previously on the same connection.
+	 * 
+	 * @param values
+	 *            values to compare with index keys
+	 * @param operator
+	 *            specifies the comparison operation to use
+	 * @param limit
+	 *            limit fetch count
+	 * @param offset
+	 *            fetch offset
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int delete(int indexId, String[] values, FindOperator operator,
+			int limit, int offset) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
+
+	/**
+	 * Delete data from mysql,set limit to 1 and offset to 0.
+	 * 
+	 * @param indexId
+	 * @param values
+	 * @param operator
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int delete(int indexId, String[] values, FindOperator operator)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
+
+	/**
+	 * Insert data
+	 * 
+	 * @param indexId
+	 * @param values
+	 *            the column values to set
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public boolean insert(int indexId, String[] values)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 
@@ -71,7 +221,7 @@ public interface HSClient {
 	 * Default operation timeout,if the operation is not returned in 1
 	 * second,throw TimeoutException
 	 */
-	public static final long DEFAULT_OP_TIMEOUT = 1000L;
+	public static final long DEFAULT_OP_TIMEOUT = 10000L;
 	/**
 	 * With java nio,there is only one connection to a memcached.In a high
 	 * concurrent enviroment,you may want to pool memcached clients.But a

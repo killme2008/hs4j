@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.code.hs4j.Command;
 import com.google.code.hs4j.CommandFactory;
-import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.core.WriteMessage;
 import com.google.code.hs4j.network.nio.NioSessionConfig;
 import com.google.code.hs4j.network.nio.impl.NioTCPSession;
@@ -77,13 +76,11 @@ public class HandlerSocketSession extends NioTCPSession {
 	public void destroy() {
 		Command command = this.currentCommand.get();
 		if (command != null) {
-			command.setException(new HandlerSocketException(
-					"Session has been closed"));
+			command.setExceptionMessage("Connection has been closed");
 			command.countDown();
 		}
 		while ((command = this.commandAlreadySent.poll()) != null) {
-			command.setException(new HandlerSocketException(
-					"Session has been closed"));
+			command.setExceptionMessage("Connection has been closed");
 			command.countDown();
 		}
 
