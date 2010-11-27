@@ -9,12 +9,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.code.hs4j.Command;
 import com.google.code.hs4j.CommandFactory;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.HSClientStateListener;
+import com.google.code.hs4j.IndexSession;
 import com.google.code.hs4j.command.text.TextCommandFactory;
 import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.config.Configuration;
@@ -23,6 +25,7 @@ import com.google.code.hs4j.network.core.impl.StandardSocketOption;
 import com.google.code.hs4j.network.hs.HandlerSocketConnector;
 import com.google.code.hs4j.network.hs.HandlerSocketHandler;
 import com.google.code.hs4j.network.hs.codec.HandlerSocketCodecFactory;
+import com.google.code.hs4j.utils.HSUtils;
 
 public class HSClientImpl implements HSClient {
 	private boolean started = false;
@@ -35,6 +38,12 @@ public class HSClientImpl implements HSClient {
 
 	private HandlerSocketHandler ioHandler;
 
+	/**
+	 * Index id counter
+	 */
+	private static AtomicInteger INDEX_COUNTER = new AtomicInteger();
+
+	@SuppressWarnings("unchecked")
 	private final Map<SocketOption, Object> socketOptions = getDefaultSocketOptions();
 
 	private final ConcurrentHashMap<Integer/* index id */, IndexRecord/*
@@ -67,10 +76,79 @@ public class HSClientImpl implements HSClient {
 		return map;
 	}
 
+	public IndexSession openIndexSession(int indexId, String dbname,
+			String tableName, String indexName, String[] columns)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException {
+		this.checkParams(dbname, tableName, indexName, columns);
+		this.openIndex(indexId, dbname, tableName, indexName, columns);
+		return new IndexSessionImpl(this, indexId, columns);
+	}
+
+	private void checkParams(String dbname, String tableName, String indexName,
+			String[] columns) {
+		if (HSUtils.isBlank(dbname)) {
+			throw new IllegalArgumentException("blank dbname:" + dbname);
+		}
+		if (HSUtils.isBlank(tableName)) {
+			throw new IllegalArgumentException("blank tableName:" + tableName);
+		}
+		if (HSUtils.isBlank(indexName)) {
+			throw new IllegalArgumentException("blank indexName:" + indexName);
+		}
+		if (columns == null || columns.length == 0) {
+			throw new IllegalArgumentException("empty columns");
+		}
+		for (String col : columns) {
+			if (HSUtils.isBlank(col)) {
+				throw new IllegalArgumentException("blank column name:" + col);
+			}
+		}
+	}
+
+	public IndexSession openIndexSession(String dbname, String tableName,
+			String indexName, String[] columns) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.openIndexSession(INDEX_COUNTER.incrementAndGet(), dbname,
+				tableName, indexName, columns);
+	}
+
 	public CopyOnWriteArrayList<HSClientStateListener> getHSClientStateListeners() {
 		return this.hsClientStateListeners;
 	}
 
+	/**
+	 * New a HSFClient instance with host and port
+	 * 
+	 * @param hostname
+	 *            HandlerSocket hostname
+	 * @param port
+	 *            HandlerSocket port
+	 * @throws IOException
+	 */
+	public HSClientImpl(String hostname, int port) throws IOException {
+		this(new InetSocketAddress(hostname, port));
+	}
+
+	/**
+	 * New a HSFClient instance with a InetSocketAddress
+	 * 
+	 * @param inetSocketAddress
+	 *            HandlerSocket address
+	 * @throws IOException
+	 */
+	public HSClientImpl(InetSocketAddress inetSocketAddress) throws IOException {
+		this(new TextCommandFactory(), inetSocketAddress);
+	}
+
+	/**
+	 * New a HSFClient
+	 * 
+	 * @param commandFactory
+	 *            The protocol commands factory
+	 * @param remoteAddr
+	 * @throws IOException
+	 */
 	public HSClientImpl(CommandFactory commandFactory,
 			InetSocketAddress remoteAddr) throws IOException {
 		super();
@@ -193,14 +271,15 @@ public class HSClientImpl implements HSClient {
 		return this.started;
 	}
 
-	public boolean openIndex(int indexId, String db, String tableName,
-			String indexName, String[] fieldList) throws InterruptedException,
+	public boolean openIndex(int indexId, String dbname, String tableName,
+			String indexName, String[] columns) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		IndexRecord record = new IndexRecord(indexId, db, tableName, indexName,
-				fieldList);
+		this.checkParams(dbname, tableName, indexName, columns);
+		IndexRecord record = new IndexRecord(indexId, dbname, tableName,
+				indexName, columns);
 		this.indexMap.put(indexId, record);
 		Command cmd = this.commandFactory.createOpenIndexCommand(String
-				.valueOf(indexId), db, tableName, indexName, fieldList);
+				.valueOf(indexId), dbname, tableName, indexName, columns);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
@@ -234,42 +313,6 @@ public class HSClientImpl implements HSClient {
 		this.started = false;
 		this.connector.stop();
 
-	}
-
-	public static void main(String[] args) throws Exception {
-		// [48, 9, 43, 9, 50, 9, 100, 101, 110, 110, 105, 115, 9, 107, 105, 108,
-		// 108, 109, 101, 50, 48, 48, 56, 64, 103, 109, 97, 105, 108, 46, 99,
-		// 111, 109, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-		HSClient client = new HSClientImpl(new TextCommandFactory(),
-				new InetSocketAddress(9999));
-		final String[] fieldList = { "user_id", "user_name", "user_email", };
-		System.out.println(client.openIndex(0, "mytest", "user", "INDEX_01",
-				fieldList));
-		String[] values = { "kevin" };
-		ResultSet rs = client.find(0, values);
-		while (rs.next()) {
-			System.out.println(rs.getString("user_name"));
-			System.out.println(rs.getString("user_email"));
-			System.out.println(rs.getString("user_id"));
-		}
-		values = new String[] { "4", "dennis", "test@gmail.com" };
-		System.out.println(client.insert(0, values));
-
-		values = new String[] { "dennis" };
-		rs = client.find(0, values);
-		while (rs.next()) {
-			System.out.println(rs.getString("user_name"));
-			System.out.println(rs.getString("user_email"));
-			// System.out.println(rs.getString("created"));
-		}
-
-		System.out.println(client.delete(0, values, FindOperator.EQ));
-		rs = client.find(0, values);
-		while (rs.next()) {
-			System.out.println(rs.getString("user_name"));
-			System.out.println(rs.getString("user_email"));
-			// System.out.println(rs.getString("created"));
-		}
 	}
 
 }

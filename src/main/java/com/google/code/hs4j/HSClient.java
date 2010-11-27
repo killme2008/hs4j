@@ -30,6 +30,40 @@ public interface HSClient {
 	public boolean isStarted();
 
 	/**
+	 * Just like openIndex method,but return a IndexSession
+	 * 
+	 * @param indexId
+	 * @param dbname
+	 * @param tableName
+	 * @param indexName
+	 * @param columns
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public IndexSession openIndexSession(int indexId, String dbname,
+			String tableName, String indexName, String[] columns)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
+
+	/**
+	 * Open a IndexSession with a auto-generated indexId
+	 * 
+	 * @param dbname
+	 * @param tableName
+	 * @param indexName
+	 * @param columns
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public IndexSession openIndexSession(String dbname, String tableName,
+			String indexName, String[] columns) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
+
+	/**
 	 * Once an 'open_index' request is issued, the HandlerSocket plugin opens
 	 * the specified index and keep it open until the client connection is
 	 * closed. Each open index is identified by indexid. If indexid is already

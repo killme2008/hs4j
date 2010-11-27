@@ -14,8 +14,8 @@ package com.google.code.hs4j;
 import java.net.InetSocketAddress;
 
 /**
- * MemcachedClient state listener.When client startup,shutdown,connected to a
- * memcached server or disconnected happened,client will notify the listener
+ * HSClient state listener.When client startup,shutdown,connected to a
+ * HandlerSocket server or disconnected happened,client will notify the listener
  * instance which implemented this interface.Please don't do any operations
  * which may block in these callback methods.
  * 
@@ -26,42 +26,39 @@ public interface HSClientStateListener {
 	/**
 	 * After client is started.
 	 * 
-	 * @param memcachedClient
+	 * @param client
 	 */
-	public void onStarted(HSClient memcachedClient);
+	public void onStarted(HSClient client);
 
 	/**
 	 * After client is shutdown.
 	 * 
-	 * @param memcachedClient
+	 * @param client
 	 */
-	public void onShutDown(HSClient memcachedClient);
+	public void onShutDown(HSClient client);
 
 	/**
-	 * After a memcached server is connected,don't do any operations may block
-	 * here.
+	 * After a server is connected,don't do any operations may block here.
 	 * 
-	 * @param memcachedClient
+	 * @param client
 	 * @param inetSocketAddress
 	 */
-	public void onConnected(HSClient memcachedClient,
-			InetSocketAddress inetSocketAddress);
+	public void onConnected(HSClient client, InetSocketAddress inetSocketAddress);
 
 	/**
-	 * After a memcached server is disconnected,don't do any operations may
-	 * block here.
+	 * After a server is disconnected,don't do any operations may block here.
 	 * 
-	 * @param memcachedClient
+	 * @param client
 	 * @param inetSocketAddress
 	 */
-	public void onDisconnected(HSClient memcachedClient,
+	public void onDisconnected(HSClient client,
 			InetSocketAddress inetSocketAddress);
 
 	/**
 	 * When exceptions occur
 	 * 
-	 * @param memcachedClient
+	 * @param client
 	 * @param throwable
 	 */
-	public void onException(HSClient memcachedClient, Throwable throwable);
+	public void onException(HSClient client, Throwable throwable);
 }

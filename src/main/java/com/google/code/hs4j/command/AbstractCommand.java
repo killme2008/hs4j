@@ -198,10 +198,15 @@ public abstract class AbstractCommand implements Command {
 					return false;
 				}
 			case DONE:
+				this.onDone();
 				this.countDown();
 				return true;
 			}
 		}
+
+	}
+
+	protected void onDone() {
 
 	}
 
@@ -214,7 +219,7 @@ public abstract class AbstractCommand implements Command {
 		}
 	}
 
-	public void decodeBody(HandlerSocketSession session, IoBuffer buffer,
+	protected void decodeBody(HandlerSocketSession session, IoBuffer buffer,
 			int index) {
 
 	}

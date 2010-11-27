@@ -1,14 +1,38 @@
 package com.google.code.hs4j;
 
 /**
- * Operator for finding
+ * Operator for finding data
  * 
  * @author dennis
  * @date 2010-11-27
  */
 public enum FindOperator {
-	EQ, GT, GE, LE, LT;
+	/**
+	 * '=' operator
+	 */
+	EQ,
+	/**
+	 * '>' operator
+	 */
+	GT,
+	/**
+	 * '>=' operator
+	 */
+	GE,
+	/**
+	 * '<=' opeartor
+	 */
+	LE,
+/**
+	 * '<' opeartor
+	 */
+	LT;
 
+	/**
+	 * Returns operator string value
+	 * 
+	 * @return
+	 */
 	public String getValue() {
 		switch (this) {
 		case EQ:

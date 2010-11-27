@@ -6,6 +6,12 @@ import java.util.concurrent.TimeUnit;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.hs.HandlerSocketSession;
 
+/**
+ * A HandlerSocket protocol command
+ * 
+ * @author dennis
+ * @date 2010-11-27
+ */
 public interface Command {
 	public void setExceptionMessage(String t);
 

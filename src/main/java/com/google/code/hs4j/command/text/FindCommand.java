@@ -1,6 +1,7 @@
 package com.google.code.hs4j.command.text;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.code.hs4j.FindOperator;
@@ -35,7 +36,15 @@ public class FindCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void decodeBody(HandlerSocketSession session, IoBuffer buffer,
+	protected void onDone() {
+		if (this.result == null) {
+			this.result = new ResultSetImpl(Collections
+					.<List<byte[]>> emptyList(), this.fieldList, this.encoding);
+		}
+	}
+
+	@Override
+	protected void decodeBody(HandlerSocketSession session, IoBuffer buffer,
 			int index) {
 		byte[] data = new byte[index - buffer.position() + 1];
 		buffer.get(data);
