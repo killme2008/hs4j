@@ -16,10 +16,13 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -30,6 +33,8 @@ import com.google.code.hs4j.CommandFactory;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.Protocol;
 import com.google.code.hs4j.exception.HandlerSocketException;
+import com.google.code.hs4j.impl.HSClientImpl;
+import com.google.code.hs4j.impl.IndexRecord;
 import com.google.code.hs4j.impl.ReconnectRequest;
 import com.google.code.hs4j.network.config.Configuration;
 import com.google.code.hs4j.network.core.Controller;
@@ -52,6 +57,9 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 
 	private final DelayQueue<ReconnectRequest> waitingQueue = new DelayQueue<ReconnectRequest>();
 
+	private final ExecutorService openIndexExectur = Executors
+			.newCachedThreadPool();
+
 	private volatile long healSessionInterval = 2000L;
 	private final int connectionPoolSize; // session pool size
 	protected Protocol protocol;
@@ -59,6 +67,49 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 	private volatile boolean allowAutoReconnect = true;
 
 	private final CommandFactory commandFactory;
+
+	private final HSClientImpl hsClient;
+
+	/**
+	 * When session was created,it must be added to sessionList,but before
+	 * that,the opening index must reopen on this session.
+	 * 
+	 * @author dennis
+	 * @date 2010-11-28
+	 */
+	private final class AddSessionTask implements Runnable {
+		private final HandlerSocketSessionImpl session;
+
+		private AddSessionTask(HandlerSocketSessionImpl session) {
+			this.session = session;
+		}
+
+		public void run() {
+			try {
+				Map<Integer, IndexRecord> indexMap = HandlerSocketConnectorImpl.this.hsClient
+						.getIndexMap();
+				if (!indexMap.isEmpty()) {
+					for (IndexRecord record : indexMap.values()) {
+						try {
+							HandlerSocketConnectorImpl.this.hsClient.openIndex(
+									record.id, record.db, record.tableName,
+									record.indexName, record.fieldList);
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						} catch (Exception e) {
+							log
+									.error(
+											"Open  index failure when connection was connected",
+											e);
+						}
+					}
+				}
+			} finally {
+				HandlerSocketConnectorImpl.this.addSession(this.session);
+			}
+
+		}
+	}
 
 	/**
 	 * Session monitor for healing sessions.
@@ -212,8 +263,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 						+ ":" + future.getRemoteAddr().getPort() + " fail"));
 			} else {
 				key.attach(null);
-				this.addSession(this.createSession((SocketChannel) key
-						.channel()));
+				this.createSession((SocketChannel) key.channel());
 				future.setResult(Boolean.TRUE);
 			}
 		} catch (Exception e) {
@@ -227,11 +277,12 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 	}
 
 	protected HandlerSocketSessionImpl createSession(SocketChannel socketChannel) {
-		HandlerSocketSessionImpl session = (HandlerSocketSessionImpl) this
+		final HandlerSocketSessionImpl session = (HandlerSocketSessionImpl) this
 				.buildSession(socketChannel);
 		this.selectorManager.registerSession(session, EventType.ENABLE_READ);
 		session.start();
 		session.onEvent(EventType.CONNECTED, null);
+		this.openIndexExectur.execute(new AddSessionTask(session));
 		return session;
 	}
 
@@ -264,7 +315,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 			this.selectorManager.registerChannel(socketChannel,
 					SelectionKey.OP_CONNECT, future);
 		} else {
-			this.addSession(this.createSession(socketChannel));
+			this.createSession(socketChannel);
 			future.setResult(true);
 		}
 		return future;
@@ -339,6 +390,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 
 		public void onStopped(Controller controller) {
 			this.sessionMonitor.interrupt();
+			HandlerSocketConnectorImpl.this.openIndexExectur.shutdown();
 		}
 
 	}
@@ -365,13 +417,14 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 	}
 
 	public HandlerSocketConnectorImpl(Configuration configuration,
-			CommandFactory commandFactory, int poolSize) {
+			CommandFactory commandFactory, int poolSize, HSClientImpl hsClient) {
 		super(configuration, null);
 		this.protocol = commandFactory.getProtocol();
 		this.addStateListener(new InnerControllerStateListener());
 		this.connectionPoolSize = poolSize;
 		this.soLingerOn = true;
 		this.commandFactory = commandFactory;
+		this.hsClient = hsClient;
 	}
 
 	@Override

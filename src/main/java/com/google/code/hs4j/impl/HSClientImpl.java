@@ -14,6 +14,7 @@ package com.google.code.hs4j.impl;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +101,11 @@ public class HSClientImpl implements HSClient {
 		} else {
 			return null;
 		}
+	}
+
+	public Map<Integer, IndexRecord> getIndexMap() {
+		return Collections
+				.<Integer, IndexRecord> unmodifiableMap(this.indexMap);
 	}
 
 	private void checkParams(String dbname, String tableName, String indexName,
@@ -217,7 +223,7 @@ public class HSClientImpl implements HSClient {
 	private void initConnectorAndConnect(CommandFactory commandFactory,
 			InetSocketAddress remoteAddr, int poolSize) throws IOException {
 		this.connector = new HandlerSocketConnectorImpl(
-				getDefaultConfiguration(), commandFactory, 1);
+				getDefaultConfiguration(), commandFactory, poolSize, this);
 		this.ioHandler = new HandlerSocketHandler(this);
 		this.connector.setHandler(this.ioHandler);
 		this.connector.setCodecFactory(new HandlerSocketCodecFactory());
@@ -233,6 +239,13 @@ public class HSClientImpl implements HSClient {
 			} catch (Exception e) {
 				throw new IOException("Connect to " + remoteAddr
 						+ " fail,cause by:" + e.getMessage());
+			}
+		}
+		while (this.connector.getSessionList().size() < poolSize) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
 		this.started = true;
