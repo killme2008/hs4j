@@ -68,7 +68,6 @@ public class HandlerSocketHandler extends HandlerAdapter {
 				&& hSession.isAllowReconnect()) {
 			this.reconnect(session);
 		}
-		// TOOD 处理重连
 		for (HSClientStateListener listener : this.hsClient
 				.getHSClientStateListeners()) {
 			listener.onDisconnected(this.hsClient, session

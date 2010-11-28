@@ -36,6 +36,7 @@ import com.google.code.hs4j.network.core.Session;
 import com.google.code.hs4j.network.core.SocketOption;
 import com.google.code.hs4j.network.core.impl.StandardSocketOption;
 import com.google.code.hs4j.network.hs.HandlerSocketConnector;
+import com.google.code.hs4j.network.hs.HandlerSocketConnectorImpl;
 import com.google.code.hs4j.network.hs.HandlerSocketHandler;
 import com.google.code.hs4j.network.hs.codec.HandlerSocketCodecFactory;
 import com.google.code.hs4j.utils.HSUtils;
@@ -45,7 +46,7 @@ public class HSClientImpl implements HSClient {
 
 	private final CommandFactory commandFactory;
 
-	private HandlerSocketConnector connector;
+	private HandlerSocketConnectorImpl connector;
 
 	private long opTimeout = DEFAULT_OP_TIMEOUT;
 
@@ -72,7 +73,7 @@ public class HSClientImpl implements HSClient {
 		final Configuration configuration = new Configuration();
 		configuration.setSessionReadBufferSize(DEFAULT_SESSION_READ_BUFF_SIZE);
 		configuration.setReadThreadCount(DEFAULT_READ_THREAD_COUNT);
-		configuration.setSessionIdleTimeout(DEFAULT_SESSION_IDLE_TIMEOUT);
+		configuration.setSessionIdleTimeout(-1);
 		configuration.setWriteThreadCount(0);
 		return configuration;
 	}
@@ -94,8 +95,11 @@ public class HSClientImpl implements HSClient {
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
 		this.checkParams(dbname, tableName, indexName, columns);
-		this.openIndex(indexId, dbname, tableName, indexName, columns);
-		return new IndexSessionImpl(this, indexId, columns);
+		if (this.openIndex(indexId, dbname, tableName, indexName, columns)) {
+			return new IndexSessionImpl(this, indexId, columns);
+		} else {
+			return null;
+		}
 	}
 
 	private void checkParams(String dbname, String tableName, String indexName,
@@ -212,8 +216,8 @@ public class HSClientImpl implements HSClient {
 
 	private void initConnectorAndConnect(CommandFactory commandFactory,
 			InetSocketAddress remoteAddr, int poolSize) throws IOException {
-		this.connector = new HandlerSocketConnector(getDefaultConfiguration(),
-				commandFactory, 1);
+		this.connector = new HandlerSocketConnectorImpl(
+				getDefaultConfiguration(), commandFactory, 1);
 		this.ioHandler = new HandlerSocketHandler(this);
 		this.connector.setHandler(this.ioHandler);
 		this.connector.setCodecFactory(new HandlerSocketCodecFactory());
@@ -292,20 +296,21 @@ public class HSClientImpl implements HSClient {
 		return this.delete(indexId, keys, operator, 1, 0);
 	}
 
-	public int update(int indexId, String[] keys,String[] values, FindOperator operator,
-			int limit, int offset) throws InterruptedException,
-			TimeoutException, HandlerSocketException {
+	public int update(int indexId, String[] keys, String[] values,
+			FindOperator operator, int limit, int offset)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException {
 		Command cmd = this.commandFactory.createUpdateCommand(String
-				.valueOf(indexId), operator,keys, values, limit, offset);
+				.valueOf(indexId), operator, keys, values, limit, offset);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return (Integer) cmd.getResult();
 	}
 
-	public int update(int indexId,String[] keys, String[] values, FindOperator operator)
-			throws InterruptedException, TimeoutException,
-			HandlerSocketException {
-		return this.update(indexId, keys,values, operator, 1, 0);
+	public int update(int indexId, String[] keys, String[] values,
+			FindOperator operator) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.update(indexId, keys, values, operator, 1, 0);
 	}
 
 	public boolean isStarted() {

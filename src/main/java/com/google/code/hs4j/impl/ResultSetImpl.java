@@ -453,19 +453,59 @@ public class ResultSetImpl implements ResultSet {
 	}
 
 	public int getInt(int columnIndex) throws SQLException {
-		throw new UnsupportedOperationException();
+		return this.getIntFromString(this.getString(columnIndex));
+
+	}
+
+	private int getIntFromString(String stringVal) throws SQLException {
+		if (stringVal == null || stringVal.trim().length() == 0) {
+			this.lastWasNull = true;
+			return 0;
+		}
+		try {
+			int decimalIndex = stringVal.indexOf(".");
+
+			if (decimalIndex != -1) {
+				double valueAsDouble = Double.parseDouble(stringVal);
+				return (int) valueAsDouble;
+			}
+
+			return Integer.parseInt(stringVal);
+		} catch (NumberFormatException e) {
+			throw new SQLException("Parse integer error:" + stringVal);
+		}
 	}
 
 	public int getInt(String columnName) throws SQLException {
-		throw new UnsupportedOperationException();
+		return this.getInt(this.findColumn(columnName));
 	}
 
 	public long getLong(int columnIndex) throws SQLException {
-		throw new UnsupportedOperationException();
+		String stringVal = this.getString(columnIndex);
+		return this.getLongFromString(stringVal);
 	}
 
 	public long getLong(String columnName) throws SQLException {
-		throw new UnsupportedOperationException();
+		return this.getLong(this.findColumn(columnName));
+	}
+
+	private long getLongFromString(String stringVal) throws SQLException {
+		if (stringVal == null || stringVal.trim().length() == 0) {
+			this.lastWasNull = true;
+			return 0L;
+		}
+		try {
+			int decimalIndex = stringVal.indexOf(".");
+
+			if (decimalIndex != -1) {
+				double valueAsDouble = Double.parseDouble(stringVal);
+				return (long) valueAsDouble;
+			}
+
+			return Long.parseLong(stringVal);
+		} catch (NumberFormatException e) {
+			throw new SQLException("Parse integer error:" + stringVal);
+		}
 	}
 
 	public ResultSetMetaData getMetaData() throws SQLException {
@@ -503,11 +543,30 @@ public class ResultSetImpl implements ResultSet {
 	}
 
 	public short getShort(int columnIndex) throws SQLException {
-		throw new UnsupportedOperationException();
+		return this.getShortFromString(this.getString(columnIndex));
 	}
 
 	public short getShort(String columnName) throws SQLException {
-		throw new UnsupportedOperationException();
+		return this.getShort(this.findColumn(columnName));
+	}
+
+	private short getShortFromString(String stringVal) throws SQLException {
+		if (stringVal == null || stringVal.trim().length() == 0) {
+			this.lastWasNull = true;
+			return 0;
+		}
+		try {
+			int decimalIndex = stringVal.indexOf(".");
+
+			if (decimalIndex != -1) {
+				double valueAsDouble = Double.parseDouble(stringVal);
+				return (short) valueAsDouble;
+			}
+
+			return Short.parseShort(stringVal);
+		} catch (NumberFormatException e) {
+			throw new SQLException("Parse integer error:" + stringVal);
+		}
 	}
 
 	public Statement getStatement() throws SQLException {
@@ -590,7 +649,7 @@ public class ResultSetImpl implements ResultSet {
 			calendar.set(Calendar.YEAR, 1);
 			calendar.set(Calendar.MONTH, 0);
 			calendar.set(Calendar.DAY_OF_MONTH, 1);
-			calendar.set(Calendar.HOUR_OF_DAY,0);
+			calendar.set(Calendar.HOUR_OF_DAY, 0);
 			calendar.set(Calendar.MINUTE, 0);
 			calendar.set(Calendar.SECOND, 0);
 			calendar.set(Calendar.MILLISECOND, 0);

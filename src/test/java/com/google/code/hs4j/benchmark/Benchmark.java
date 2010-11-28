@@ -1,4 +1,4 @@
-package com.google.code.hs4j;
+package com.google.code.hs4j.benchmark;
 
 /**
  * A benchmark between mysql driver and hsclient

@@ -283,7 +283,7 @@ public interface HSClient {
 
 	/**
 	 * Default thread number for reading nio's receive buffer and dispatch
-	 * commands.Recommend users to set it equal or less to the memcached
+	 * commands.Recommend users to set it equal or less to the HandlerSocket
 	 * server's number on linux platform,keep default on windows.Default is 0.
 	 */
 	public static final int DEFAULT_READ_THREAD_COUNT = 0;
@@ -317,21 +317,7 @@ public interface HSClient {
 	 * second,throw TimeoutException
 	 */
 	public static final long DEFAULT_OP_TIMEOUT = 10000L;
-	/**
-	 * With java nio,there is only one connection to a memcached.In a high
-	 * concurrent enviroment,you may want to pool memcached clients.But a
-	 * xmemcached client has to start a reactor thread and some thread pools,if
-	 * you create too many clients,the cost is very large. Xmemcached supports
-	 * connection pool instreadof client pool.you can create more connections to
-	 * one or more memcached servers,and these connections share the same
-	 * reactor and thread pools,it will reduce the cost of system.Default pool
-	 * size is 1.
-	 */
+
 	public static final int DEFAULT_CONNECTION_POOL_SIZE = 1;
 
-	/**
-	 * Default session idle timeout,if session is idle,xmemcached will do a
-	 * heartbeat action to check if connection is alive.
-	 */
-	public static final int DEFAULT_SESSION_IDLE_TIMEOUT = 5000;
 }
