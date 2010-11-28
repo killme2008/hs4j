@@ -47,5 +47,6 @@ public class HS4JExample {
 			System.out.println(rs.getString("user_email"));
 			// System.out.println(rs.getString("created"));
 		}
+		client.shutdown();
 	}
 }

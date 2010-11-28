@@ -14,7 +14,6 @@ package com.google.code.hs4j.command.text;
 import java.io.UnsupportedEncodingException;
 
 import com.google.code.hs4j.FindOperator;
-import com.google.code.hs4j.command.AbstractCommand;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.hs.HandlerSocketSession;
 
@@ -27,37 +26,34 @@ import com.google.code.hs4j.network.hs.HandlerSocketSession;
 public class ModifyCommand extends AbstractCommand {
 	private final String id;
 	private final String operator;
+	private final String[] keys;
 	private final String[] values;
 	private final String modOperation;
-	private final String[] fieldList;
 	private final int limit;
 	private final int offset;
 
-	public ModifyCommand(String id, FindOperator operator, String[] values,
-			int limit, int offset, String[] fieldList, String modOperation) {
+	public ModifyCommand(String id, FindOperator operator, String[] keys,
+			String[] values, int limit, int offset, String modOperation) {
 		super();
 		this.id = id;
 		this.operator = operator.getValue();
 		this.values = values;
 		this.limit = limit;
 		this.offset = offset;
-		this.fieldList = fieldList;
 		this.modOperation = modOperation;
+		this.keys = keys;
 	}
 
 	@Override
-	public void decodeBody(HandlerSocketSession session, IoBuffer buffer,
-			int index) {
-		byte[] data = new byte[index - buffer.position()];
-		buffer.get(data);
-		buffer.position(buffer.position() + 1);
-		this.result = data[0]-0x30;
+	public void decodeBody(HandlerSocketSession session, byte[] data, int index) {
+		this.result = data[0] - 0x30;
 	}
 
 	public void encode() {
 		IoBuffer buf = IoBuffer.allocate(this.id.length() + 1
 				+ this.operator.length() + 1 + this.length(this.values)
-				+ this.values.length + 1 + 10);
+				+ this.length(this.keys) + this.values.length + 1
+				+ this.keys.length + 10);
 		buf.setAutoExpand(true);
 
 		// id
@@ -67,9 +63,9 @@ public class ModifyCommand extends AbstractCommand {
 		this.writeToken(buf, this.operator);
 		this.writeTokenSeparator(buf);
 		// key nums
-		this.writeToken(buf, String.valueOf(this.values.length));
+		this.writeToken(buf, String.valueOf(this.keys.length));
 		this.writeTokenSeparator(buf);
-		for (String key : this.values) {
+		for (String key : this.keys) {
 			this.writeToken(buf, key == null ? null : this.getBytes(key));
 			this.writeTokenSeparator(buf);
 		}

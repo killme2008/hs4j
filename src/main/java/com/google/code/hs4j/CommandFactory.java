@@ -27,12 +27,12 @@ public interface CommandFactory {
 	public Command createInsertCommand(String id, String[] values);
 
 	public Command createFindCommand(String id, FindOperator operator,
-			String[] values, int limit, int offset, String[] fieldList);
+			String[] keys, int limit, int offset, String[] fieldList);
 
 	public Command createUpdateCommand(String id, FindOperator operator,
-			String[] values, int limit, int offset, String[] fieldList);
+			String[] keys, String[] values, int limit, int offset);
 
 	public Command createDeleteCommand(String id, FindOperator operator,
-			String[] values, int limit, int offset, String[] fieldList);
+			String[] keys, int limit, int offset);
 
 }

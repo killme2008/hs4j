@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.code.hs4j.FindOperator;
-import com.google.code.hs4j.command.AbstractCommand;
 import com.google.code.hs4j.impl.ResultSetImpl;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.hs.HandlerSocketSession;
@@ -30,17 +29,17 @@ import com.google.code.hs4j.network.hs.HandlerSocketSession;
 public class FindCommand extends AbstractCommand {
 	private final String id;
 	private final String operator;
-	private final String[] values;
+	private final String[] keys;
 	private final int limit;
 	private final int offset;
 	private final String[] fieldList;
 
-	public FindCommand(String id, FindOperator operator, String[] values,
+	public FindCommand(String id, FindOperator operator, String[] keys,
 			int limit, int offset, String[] fieldList) {
 		super();
 		this.id = id;
 		this.operator = operator.getValue();
-		this.values = values;
+		this.keys = keys;
 		this.limit = limit;
 		this.offset = offset;
 		this.fieldList = fieldList;
@@ -55,10 +54,8 @@ public class FindCommand extends AbstractCommand {
 	}
 
 	@Override
-	protected void decodeBody(HandlerSocketSession session, IoBuffer buffer,
+	protected void decodeBody(HandlerSocketSession session, byte[] data,
 			int index) {
-		byte[] data = new byte[index - buffer.position() + 1];
-		buffer.get(data);
 		List<List<byte[]>> rows = new ArrayList<List<byte[]>>(this
 				.getNumColumns());
 		int offset = 0;
@@ -87,8 +84,8 @@ public class FindCommand extends AbstractCommand {
 
 	public void encode() {
 		IoBuffer buf = IoBuffer.allocate(this.id.length() + 1
-				+ this.operator.length() + 1 + this.length(this.values)
-				+ this.values.length + 1 + 10);
+				+ this.operator.length() + 1 + this.length(this.keys)
+				+ this.keys.length + 1 + 10);
 
 		// id
 		this.writeToken(buf, this.id);
@@ -97,9 +94,9 @@ public class FindCommand extends AbstractCommand {
 		this.writeToken(buf, this.operator);
 		this.writeTokenSeparator(buf);
 		// value nums
-		this.writeToken(buf, String.valueOf(this.values.length));
+		this.writeToken(buf, String.valueOf(this.keys.length));
 		this.writeTokenSeparator(buf);
-		for (String key : this.values) {
+		for (String key : this.keys) {
 			this.writeToken(buf, key);
 			this.writeTokenSeparator(buf);
 		}

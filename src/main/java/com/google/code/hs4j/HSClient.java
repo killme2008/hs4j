@@ -127,13 +127,13 @@ public interface HSClient {
 	 * 
 	 * @see find
 	 * @param indexId
-	 * @param values
+	 * @param keys
 	 * @return
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public ResultSet find(int indexId, String[] values)
+	public ResultSet find(int indexId, String[] keys)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 
@@ -143,9 +143,11 @@ public interface HSClient {
 	 * @param indexId
 	 *            This number must be an indexId specified by a 'open_index'
 	 *            request executed previously on the same connection.
+	 * @param keys
+	 *            keys to compare with index columns
 	 * 
 	 * @param values
-	 *            values to compare with index keys
+	 *            modify values
 	 * @param operator
 	 *            specifies the comparison operation to use
 	 * @param limit
@@ -157,15 +159,17 @@ public interface HSClient {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int update(int indexId, String[] values, FindOperator operator,
-			int limit, int offset) throws InterruptedException,
-			TimeoutException, HandlerSocketException;
+	public int update(int indexId, String[] keys, String[] values,
+			FindOperator operator, int limit, int offset)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
 
 	/**
 	 * Update data,set limit to 1 and offset to 0.
 	 * 
 	 * @see update
 	 * @param indexId
+	 * @param keys
 	 * @param values
 	 * @param operator
 	 * @return
@@ -173,9 +177,9 @@ public interface HSClient {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int update(int indexId, String[] values, FindOperator operator)
-			throws InterruptedException, TimeoutException,
-			HandlerSocketException;
+	public int update(int indexId, String[] keys, String[] values,
+			FindOperator operator) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
 
 	/**
 	 * Delete data from mysql
@@ -184,8 +188,8 @@ public interface HSClient {
 	 *            This number must be an indexId specified by a 'open_index'
 	 *            request executed previously on the same connection.
 	 * 
-	 * @param values
-	 *            values to compare with index keys
+	 * @param keys
+	 *            keys to compare with index columns
 	 * @param operator
 	 *            specifies the comparison operation to use
 	 * @param limit
@@ -197,7 +201,7 @@ public interface HSClient {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int delete(int indexId, String[] values, FindOperator operator,
+	public int delete(int indexId, String[] keys, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException;
 
@@ -205,14 +209,14 @@ public interface HSClient {
 	 * Delete data from mysql,set limit to 1 and offset to 0.
 	 * 
 	 * @param indexId
-	 * @param values
+	 * @param keys
 	 * @param operator
 	 * @return
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int delete(int indexId, String[] values, FindOperator operator)
+	public int delete(int indexId, String[] keys, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 

@@ -15,7 +15,6 @@ import com.google.code.hs4j.Command;
 import com.google.code.hs4j.CommandFactory;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.Protocol;
-import com.google.code.hs4j.command.AbstractCommand;
 
 /**
  * HandlerSocket text protocol command factory
@@ -39,20 +38,20 @@ public class TextCommandFactory implements CommandFactory {
 	}
 
 	public Command createFindCommand(String id, FindOperator operator,
-			String[] values, int limit, int offset, String[] fieldList) {
-		return new FindCommand(id, operator, values, limit, offset, fieldList);
+			String[] keys, int limit, int offset, String[] fieldList) {
+		return new FindCommand(id, operator, keys, limit, offset, fieldList);
 	}
 
 	public Command createUpdateCommand(String id, FindOperator operator,
-			String[] values, int limit, int offset, String[] fieldList) {
-		return new ModifyCommand(id, operator, values, limit, offset,
-				fieldList, AbstractCommand.OPERATOR_UPDATE);
+			String[] keys, String[] values, int limit, int offset) {
+		return new ModifyCommand(id, operator, keys, values, limit, offset,
+				AbstractCommand.OPERATOR_UPDATE);
 	}
 
 	public Command createDeleteCommand(String id, FindOperator operator,
-			String[] values, int limit, int offset, String[] fieldList) {
-		return new ModifyCommand(id, operator, values, limit, offset,
-				fieldList, AbstractCommand.OPERATOR_DELETE);
+			String[] keys, int limit, int offset) {
+		return new ModifyCommand(id, operator, keys, new String[keys.length],
+				limit, offset, AbstractCommand.OPERATOR_DELETE);
 	}
 
 }

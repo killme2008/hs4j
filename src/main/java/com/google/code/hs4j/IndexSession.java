@@ -41,8 +41,8 @@ public interface IndexSession {
 	/**
 	 * Getting data from mysql
 	 * 
-	 * @param values
-	 *            values to compare with index keys
+	 * @param keys
+	 *            keys to compare with index columns
 	 * @param operator
 	 *            specifies the comparison operation to use
 	 * @param limit
@@ -54,7 +54,7 @@ public interface IndexSession {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public ResultSet find(String[] values, FindOperator operator, int limit,
+	public ResultSet find(String[] keys, FindOperator operator, int limit,
 			int offset) throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 
@@ -63,20 +63,22 @@ public interface IndexSession {
 	 * 
 	 * @see find
 	 * @param indexId
-	 * @param values
+	 * @param keys
 	 * @return
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public ResultSet find(String[] values) throws InterruptedException,
+	public ResultSet find(String[] keys) throws InterruptedException,
 			TimeoutException, HandlerSocketException;
 
 	/**
 	 * Update data
 	 * 
+	 * @param keys
+	 *            keys to compare with index columns
 	 * @param values
-	 *            values to compare with index keys
+	 *            values to set
 	 * @param operator
 	 *            specifies the comparison operation to use
 	 * @param limit
@@ -88,13 +90,15 @@ public interface IndexSession {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int update(String[] values, FindOperator operator, int limit,
-			int offset) throws InterruptedException, TimeoutException,
-			HandlerSocketException;
+	public int update(String[] keys, String[] values, FindOperator operator,
+			int limit, int offset) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
 
 	/**
 	 * Update data,set limit to 1 and offset to 0.
 	 * 
+	 * @param keys
+	 *            keys to compare with index columns
 	 * @see update
 	 * @param values
 	 * @param operator
@@ -103,15 +107,16 @@ public interface IndexSession {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int update(String[] values, FindOperator operator)
+	public int update(String[] keys, String[] values, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 
 	/**
 	 * Delete data from mysql
 	 * 
-	 * @param values
-	 *            values to compare with index keys
+	 * 
+	 * @param keys
+	 *            keys to compare with index columns
 	 * @param operator
 	 *            specifies the comparison operation to use
 	 * @param limit
@@ -123,21 +128,21 @@ public interface IndexSession {
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int delete(String[] values, FindOperator operator, int limit,
+	public int delete(String[] keys, FindOperator operator, int limit,
 			int offset) throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 
 	/**
 	 * Delete data from mysql,set limit to 1 and offset to 0.
 	 * 
-	 * @param values
+	 * @param keys
 	 * @param operator
 	 * @return
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 * @throws HandlerSocketException
 	 */
-	public int delete(String[] values, FindOperator operator)
+	public int delete(String[] keys, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
 

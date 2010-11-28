@@ -9,7 +9,7 @@
  *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
  *either express or implied. See the License for the specific language governing permissions and limitations under the License
  */
-package com.google.code.hs4j.command;
+package com.google.code.hs4j.command.text;
 
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.CountDownLatch;
@@ -141,7 +141,9 @@ public abstract class AbstractCommand implements Command {
 		}
 		int result = 0;
 		for (String value : values) {
-			result += value.length();
+			if (value != null) {
+				result += value.length();
+			}
 		}
 		return result;
 	}
@@ -149,6 +151,7 @@ public abstract class AbstractCommand implements Command {
 	private ParseState currentState;
 	private int responseStatus;
 	private int numColumns;
+	private byte[] body;
 
 	public int getResponseStatus() {
 		return this.responseStatus;
@@ -171,21 +174,23 @@ public abstract class AbstractCommand implements Command {
 	}
 
 	public boolean decode(HandlerSocketSession session, IoBuffer buffer) {
-		if (buffer.remaining() < 4) {
-			return false;
-		}
 		if (this.currentState == null) {
 			this.currentState = ParseState.HEAD;
 		}
 		while (true) {
 			switch (this.currentState) {
 			case HEAD:
+				if (buffer.remaining() < 4) {
+					return false;
+				}
 				this.responseStatus = buffer.get() - 0x30;
 				skipSeperator(buffer);
 				this.numColumns = buffer.get() - 0x30;
 				byte next = buffer.get();
 				if (next == COMMAND_TERMINATE) {
 					this.currentState = ParseState.DONE;
+				} else if (next == TOKEN_SEPARATOR) {
+					this.currentState = ParseState.BODY;
 				} else {
 					this.currentState = ParseState.BODY;
 				}
@@ -194,18 +199,24 @@ public abstract class AbstractCommand implements Command {
 				int index = TERMIATER_MATCHER.matchFirst(buffer);
 				if (index > 0) {
 					if (this.responseStatus == 0) {
-						this.decodeBody(session, buffer, index);
+						this.copyDataFromBufferToBody(buffer, index
+								- buffer.position() + 1);
+						this.decodeBody(session, this.body, index);
 					} else {
-						byte[] data = new byte[index - buffer.position()];
-						buffer.get(data);
+						this.copyDataFromBufferToBody(buffer, index
+								- buffer.position());
 						// skip terminator
 						buffer.position(buffer.position() + 1);
 						this.setExceptionMessage("Error message from server:"
-								+ this.encodingString(data));
+								+ this.encodingString(this.body));
 					}
 					this.currentState = ParseState.DONE;
 					continue;
 				} else {
+					if (buffer.hasRemaining()) {
+						this.copyDataFromBufferToBody(buffer, buffer
+								.remaining());
+					}
 					return false;
 				}
 			case DONE:
@@ -215,6 +226,20 @@ public abstract class AbstractCommand implements Command {
 			}
 		}
 
+	}
+
+	private void copyDataFromBufferToBody(IoBuffer buffer, int length) {
+		if (this.body == null) {
+			this.body = new byte[length];
+			buffer.get(this.body);
+		} else {
+			int oldLen = this.body.length;
+			byte[] newBody = new byte[oldLen + length];
+			// copy body to new body
+			System.arraycopy(this.body, 0, newBody, 0, oldLen);
+			this.body = newBody;
+			buffer.get(this.body, oldLen, length);
+		}
 	}
 
 	protected void onDone() {
@@ -230,9 +255,17 @@ public abstract class AbstractCommand implements Command {
 		}
 	}
 
-	protected void decodeBody(HandlerSocketSession session, IoBuffer buffer,
+	protected void decodeBody(HandlerSocketSession session, byte[] body,
 			int index) {
 
+	}
+
+	CountDownLatch getLatch() {
+		return this.latch;
+	}
+
+	ParseState getCurrentState() {
+		return this.currentState;
 	}
 
 	protected void writeTokenSeparator(IoBuffer buf) {

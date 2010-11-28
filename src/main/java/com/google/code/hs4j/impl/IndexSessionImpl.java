@@ -54,15 +54,15 @@ public class IndexSessionImpl implements IndexSession {
 		return this.delete(values, operator, 1, 0);
 	}
 
-	public ResultSet find(String[] values, FindOperator operator, int limit,
+	public ResultSet find(String[] keys, FindOperator operator, int limit,
 			int offset) throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		return this.client.find(this.indexId, values, operator, limit, offset);
+		return this.client.find(this.indexId, keys, operator, limit, offset);
 	}
 
-	public ResultSet find(String[] values) throws InterruptedException,
+	public ResultSet find(String[] keys) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		return this.find(values, FindOperator.EQ, 1, 0);
+		return this.find(keys, FindOperator.EQ, 1, 0);
 	}
 
 	public int getIndexId() {
@@ -74,17 +74,17 @@ public class IndexSessionImpl implements IndexSession {
 		return this.client.insert(this.indexId, values);
 	}
 
-	public int update(String[] values, FindOperator operator, int limit,
-			int offset) throws InterruptedException, TimeoutException,
-			HandlerSocketException {
-		return this.client
-				.update(this.indexId, values, operator, limit, offset);
+	public int update(String[] keys, String[] values, FindOperator operator,
+			int limit, int offset) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.client.update(this.indexId, keys, values, operator, limit,
+				offset);
 	}
 
-	public int update(String[] values, FindOperator operator)
+	public int update(String[] keys, String[] values, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		return this.update(values, operator, 1, 0);
+		return this.update(keys, values, operator, 1, 0);
 	}
 
 }

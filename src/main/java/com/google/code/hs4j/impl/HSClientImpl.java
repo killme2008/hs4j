@@ -238,12 +238,12 @@ public class HSClientImpl implements HSClient {
 		return this.connector;
 	}
 
-	public ResultSet find(int indexId, String[] values, FindOperator operator,
+	public ResultSet find(int indexId, String[] keys, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
 		IndexRecord indexRecord = this.getRecord(indexId);
 		Command cmd = this.commandFactory.createFindCommand(String
-				.valueOf(indexId), operator, values, limit, offset,
+				.valueOf(indexId), operator, keys, limit, offset,
 				indexRecord.fieldList);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
@@ -259,57 +259,53 @@ public class HSClientImpl implements HSClient {
 		return indexRecord;
 	}
 
-	public ResultSet find(int indexId, String[] values)
+	public ResultSet find(int indexId, String[] keys)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		return this.find(indexId, values, FindOperator.EQ, 1, 0);
+		return this.find(indexId, keys, FindOperator.EQ, 1, 0);
 	}
 
-	public boolean insert(int indexId, String[] values)
+	public boolean insert(int indexId, String[] keys)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
 		Command cmd = this.commandFactory.createInsertCommand(String
-				.valueOf(indexId), values);
+				.valueOf(indexId), keys);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
 
 	}
 
-	public int delete(int indexId, String[] values, FindOperator operator,
+	public int delete(int indexId, String[] keys, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		IndexRecord indexRecord = this.getRecord(indexId);
 		Command cmd = this.commandFactory.createDeleteCommand(String
-				.valueOf(indexId), operator, values, limit, offset,
-				indexRecord.fieldList);
+				.valueOf(indexId), operator, keys, limit, offset);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return (Integer) cmd.getResult();
 	}
 
-	public int delete(int indexId, String[] values, FindOperator operator)
+	public int delete(int indexId, String[] keys, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		return this.delete(indexId, values, operator, 1, 0);
+		return this.delete(indexId, keys, operator, 1, 0);
 	}
 
-	public int update(int indexId, String[] values, FindOperator operator,
+	public int update(int indexId, String[] keys,String[] values, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		IndexRecord indexRecord = this.getRecord(indexId);
 		Command cmd = this.commandFactory.createUpdateCommand(String
-				.valueOf(indexId), operator, values, limit, offset,
-				indexRecord.fieldList);
+				.valueOf(indexId), operator,keys, values, limit, offset);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return (Integer) cmd.getResult();
 	}
 
-	public int update(int indexId, String[] values, FindOperator operator)
+	public int update(int indexId,String[] keys, String[] values, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		return this.update(indexId, values, operator, 1, 0);
+		return this.update(indexId, keys,values, operator, 1, 0);
 	}
 
 	public boolean isStarted() {
