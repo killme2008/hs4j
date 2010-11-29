@@ -32,11 +32,16 @@ public abstract class AbstractCommand implements Command {
 	public static final String OPERATOR_DELETE = "D";
 
 	protected static IoBuffer TERMINATER = IoBuffer.allocate(1);
+	protected static IoBuffer SEPERATOR = IoBuffer.allocate(1);
 	protected static ByteBufferMatcher TERMIATER_MATCHER;
+	protected static ByteBufferMatcher SEPERATOR_MATCHER;
 	static {
 		TERMINATER.put(COMMAND_TERMINATE);
 		TERMINATER.flip();
+		SEPERATOR.put(TOKEN_SEPARATOR);
+		SEPERATOR.flip();
 		TERMIATER_MATCHER = new ShiftAndByteBufferMatcher(TERMINATER);
+		SEPERATOR_MATCHER = new ShiftAndByteBufferMatcher(SEPERATOR);
 	}
 
 	public static final String DEFAULT_ENCODING = "UTF-8";
@@ -151,6 +156,7 @@ public abstract class AbstractCommand implements Command {
 	private ParseState currentState;
 	private int responseStatus;
 	private int numColumns;
+	private final StringBuilder numColumnsAppender = new StringBuilder(5);
 	private byte[] body;
 
 	public int getResponseStatus() {
@@ -162,7 +168,7 @@ public abstract class AbstractCommand implements Command {
 	}
 
 	static enum ParseState {
-		HEAD, BODY, DONE
+		STATUS, NUMCOLUMNS, BODY, DONE
 	}
 
 	protected static void skipSeperator(IoBuffer buffer) {
@@ -175,27 +181,44 @@ public abstract class AbstractCommand implements Command {
 
 	public boolean decode(HandlerSocketSession session, IoBuffer buffer) {
 		if (this.currentState == null) {
-			this.currentState = ParseState.HEAD;
+			this.currentState = ParseState.STATUS;
 		}
-		while (true) {
+		LABEL: while (true) {
 			switch (this.currentState) {
-			case HEAD:
-				if (buffer.remaining() < 4) {
+			case STATUS:
+				if (buffer.remaining() < 2) {
 					return false;
 				}
 				this.responseStatus = buffer.get() - 0x30;
 				skipSeperator(buffer);
-				this.numColumns = buffer.get() - 0x30;
-				byte next = buffer.get();
-				if (next == COMMAND_TERMINATE) {
-					this.currentState = ParseState.DONE;
-				} else if (next == TOKEN_SEPARATOR) {
-					this.currentState = ParseState.BODY;
-				} else {
-					this.currentState = ParseState.BODY;
-				}
+				this.currentState = ParseState.NUMCOLUMNS;
 				continue;
+			case NUMCOLUMNS:
+				if (!buffer.hasRemaining()) {
+					return false;
+				}
+				int remaining = buffer.remaining();
+				for (int i = 0; i < remaining; i++) {
+					byte b = buffer.get();
+					if (b == COMMAND_TERMINATE) {
+						this.numColumns = Integer
+								.parseInt(this.numColumnsAppender.toString());
+						this.currentState = ParseState.DONE;
+						continue LABEL;
+					} else if (b == TOKEN_SEPARATOR) {
+						this.numColumns = Integer
+								.parseInt(this.numColumnsAppender.toString());
+						this.currentState = ParseState.BODY;
+						continue LABEL;
+					} else {
+						this.numColumnsAppender.append(b - 0x30);
+					}
+				}
+				return false;
 			case BODY:
+				if (!buffer.hasRemaining()) {
+					return false;
+				}
 				int index = TERMIATER_MATCHER.matchFirst(buffer);
 				if (index > 0) {
 					if (this.responseStatus == 0) {
