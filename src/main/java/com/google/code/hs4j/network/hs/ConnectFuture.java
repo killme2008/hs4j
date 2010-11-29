@@ -18,7 +18,7 @@ import com.google.code.hs4j.network.core.impl.FutureImpl;
 /**
  * Connect operation future
  * 
- * @author boyan
+ * @author Dennis
  * 
  */
 public class ConnectFuture extends FutureImpl<Boolean> {

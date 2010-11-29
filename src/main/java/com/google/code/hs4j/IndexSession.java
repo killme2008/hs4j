@@ -145,6 +145,19 @@ public interface IndexSession {
 	public int delete(String[] keys, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
+	
+	/**
+	 * Delete data from mysql,set limit to 1,offset to 0 and FindOperator to EQ
+	 * 
+	 * @see delete
+	 * @param keys
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int delete(String[] keys) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
 
 	/**
 	 * Insert data

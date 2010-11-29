@@ -33,7 +33,7 @@ public class HandlerSocketCodecFactory implements CodecFactory {
 	}
 
 	/**
-	 * return the memcached protocol decoder
+	 * return the hs4j protocol decoder
 	 */
 
 	public final CodecFactory.Decoder getDecoder() {
@@ -42,7 +42,7 @@ public class HandlerSocketCodecFactory implements CodecFactory {
 	}
 
 	/**
-	 * return the memcached protocol encoder
+	 * return the hs4j protocol encoder
 	 */
 
 	public final CodecFactory.Encoder getEncoder() {

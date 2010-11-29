@@ -18,6 +18,9 @@ package com.google.code.hs4j;
  * @date 2010-11-27
  */
 public enum Protocol {
+	/**
+	 * Text protocol,default type
+	 */
 	Text
 
 }

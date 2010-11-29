@@ -12,7 +12,7 @@
 package com.google.code.hs4j.impl;
 
 /**
- * An open-index connection record
+ * Represent an opened index
  * 
  * @author dennis
  * @date 2010-11-27
@@ -24,8 +24,8 @@ public class IndexRecord {
 	public final String indexName;
 	public final String[] fieldList;
 
-	public IndexRecord(int id, String db, String tableName,
-			String indexName, String[] fieldList) {
+	public IndexRecord(int id, String db, String tableName, String indexName,
+			String[] fieldList) {
 		super();
 		this.id = id;
 		this.db = db;

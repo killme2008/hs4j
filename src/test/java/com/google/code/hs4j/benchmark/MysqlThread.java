@@ -47,7 +47,7 @@ public class MysqlThread extends Thread {
 					pstmt = conn.prepareStatement(insertSQL);
 
 					pstmt.setInt(1, 0);// id
-					pstmt.setString(2, "first_name_" + postfix);
+					pstmt.setString(2, "my_first_name_" + postfix);
 					pstmt.setString(3, "last_name_" + postfix);
 					pstmt.setString(4, "myduty_" + postfix);
 					String phone = String.valueOf(i);

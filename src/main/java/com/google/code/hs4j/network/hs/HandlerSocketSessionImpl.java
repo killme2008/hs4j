@@ -26,7 +26,7 @@ import com.google.code.hs4j.network.util.LinkedTransferQueue;
 import com.google.code.hs4j.network.util.SystemUtils;
 
 /**
- * Connected session for a handlersocket server
+ * HandlerSokcetSession implementation
  * 
  * @author dennis
  */

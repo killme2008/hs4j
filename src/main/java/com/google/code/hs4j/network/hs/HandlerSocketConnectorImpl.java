@@ -48,7 +48,7 @@ import com.google.code.hs4j.network.nio.impl.SocketChannelController;
 import com.google.code.hs4j.network.util.SystemUtils;
 
 /**
- * Connected session manager
+ * Connector implementation
  * 
  * @author dennis
  */
@@ -333,7 +333,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		int retryCount = 0;
 		while ((session == null || session.isClosed()) && retryCount++ < 6) {
 			session = this.sessionList.get(this.sets.incrementAndGet()
-					/ this.sessionList.size());
+					% this.sessionList.size());
 		}
 		if (session == null || session.isClosed()) {
 			throw new HandlerSocketException(

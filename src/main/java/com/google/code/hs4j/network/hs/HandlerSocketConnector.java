@@ -11,6 +11,12 @@ import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.impl.ReconnectRequest;
 import com.google.code.hs4j.network.core.Session;
 
+/**
+ * Networking connector
+ * 
+ * @author dennis
+ * @date 2010-11-29
+ */
 public interface HandlerSocketConnector {
 	public boolean isStarted();
 

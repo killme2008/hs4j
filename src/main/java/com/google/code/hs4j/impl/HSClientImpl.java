@@ -42,6 +42,12 @@ import com.google.code.hs4j.network.hs.HandlerSocketHandler;
 import com.google.code.hs4j.network.hs.codec.HandlerSocketCodecFactory;
 import com.google.code.hs4j.utils.HSUtils;
 
+/**
+ * HSClient implementation
+ * 
+ * @author dennis
+ * @date 2010-11-29
+ */
 public class HSClientImpl implements HSClient {
 	private boolean started = false;
 
@@ -175,7 +181,7 @@ public class HSClientImpl implements HSClient {
 	 * @throws IOException
 	 */
 	public HSClientImpl(InetSocketAddress inetSocketAddress) throws IOException {
-		this(inetSocketAddress, 1);
+		this(inetSocketAddress, DEFAULT_CONNECTION_POOL_SIZE);
 	}
 
 	/**
@@ -241,6 +247,7 @@ public class HSClientImpl implements HSClient {
 						+ " fail,cause by:" + e.getMessage());
 			}
 		}
+		// waiting pool ready
 		while (this.connector.getSessionList().size() < poolSize) {
 			try {
 				Thread.sleep(100);
@@ -282,11 +289,11 @@ public class HSClientImpl implements HSClient {
 		return this.find(indexId, keys, FindOperator.EQ, 1, 0);
 	}
 
-	public boolean insert(int indexId, String[] keys)
+	public boolean insert(int indexId, String[] values)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
 		Command cmd = this.commandFactory.createInsertCommand(String
-				.valueOf(indexId), keys);
+				.valueOf(indexId), values);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
@@ -307,6 +314,11 @@ public class HSClientImpl implements HSClient {
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
 		return this.delete(indexId, keys, operator, 1, 0);
+	}
+
+	public int delete(int indexId, String[] keys) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.delete(indexId, keys, FindOperator.EQ);
 	}
 
 	public int update(int indexId, String[] keys, String[] values,

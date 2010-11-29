@@ -37,7 +37,7 @@ public class HSClientThread extends Thread {
 			String postfix = this.index + "_" + i;
 			final String[] values = new String[11];
 			values[0] = String.valueOf(this.index * this.repeats + i);
-			values[1] = "first_name_" + postfix;
+			values[1] = "hs_first_name_" + postfix;
 			values[2] = "last_name_" + postfix;
 			values[3] = "myduty_" + postfix;
 			String phone = String.valueOf(i);

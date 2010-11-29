@@ -19,19 +19,73 @@ package com.google.code.hs4j;
  */
 public interface CommandFactory {
 
+	/**
+	 * Returns protocol type
+	 * 
+	 * @return
+	 */
 	Protocol getProtocol();
 
+	/**
+	 * Create an open-index command
+	 * 
+	 * @param id
+	 * @param db
+	 * @param tableName
+	 * @param indexName
+	 * @param fieldList
+	 * @return
+	 */
 	public Command createOpenIndexCommand(String id, String db,
 			String tableName, String indexName, String[] fieldList);
 
+	/**
+	 * Create an insert command
+	 * 
+	 * @param id
+	 * @param values
+	 * @return
+	 */
 	public Command createInsertCommand(String id, String[] values);
 
+	/**
+	 * create a find command
+	 * 
+	 * @param id
+	 * @param operator
+	 * @param keys
+	 * @param limit
+	 * @param offset
+	 * @param fieldList
+	 * @return
+	 */
 	public Command createFindCommand(String id, FindOperator operator,
 			String[] keys, int limit, int offset, String[] fieldList);
 
+	/**
+	 * Create a update command
+	 * 
+	 * @param id
+	 * @param operator
+	 * @param keys
+	 * @param values
+	 * @param limit
+	 * @param offset
+	 * @return
+	 */
 	public Command createUpdateCommand(String id, FindOperator operator,
 			String[] keys, String[] values, int limit, int offset);
 
+	/**
+	 * create delete command
+	 * 
+	 * @param id
+	 * @param operator
+	 * @param keys
+	 * @param limit
+	 * @param offset
+	 * @return
+	 */
 	public Command createDeleteCommand(String id, FindOperator operator,
 			String[] keys, int limit, int offset);
 

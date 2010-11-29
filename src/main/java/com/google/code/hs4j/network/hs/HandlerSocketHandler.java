@@ -52,7 +52,7 @@ public class HandlerSocketHandler extends HandlerAdapter {
 
 	@Override
 	public void onExceptionCaught(Session session, Throwable throwable) {
-		log.error("XMemcached network layout exception", throwable);
+		log.error("hs4j network layout exception", throwable);
 	}
 
 	/**
@@ -76,20 +76,21 @@ public class HandlerSocketHandler extends HandlerAdapter {
 	}
 
 	/**
-	 * Auto reconect to memcached server
+	 * Auto reconect request to hs4j server
 	 * 
 	 * @param session
 	 */
 	protected void reconnect(Session session) {
 		if (this.hsClient.isStarted()) {
-			log.debug("Add reconnectRequest to connector "
-					+ session.getRemoteSocketAddress());
+			if (log.isDebugEnabled()) {
+				log.debug("Add reconnectRequest to connector "
+						+ session.getRemoteSocketAddress());
+			}
 			HandlerSocketSession hSession = (HandlerSocketSession) session;
-			InetSocketAddress inetSocketAddressWrapper = hSession
-					.getRemoteSocketAddress();
+			InetSocketAddress addr = hSession.getRemoteSocketAddress();
 			this.hsClient.getConnector().addToWatingQueue(
-					new ReconnectRequest(inetSocketAddressWrapper, 0,
-							this.hsClient.getHealConnectionInterval()));
+					new ReconnectRequest(addr, 0, this.hsClient
+							.getHealConnectionInterval()));
 		}
 	}
 }

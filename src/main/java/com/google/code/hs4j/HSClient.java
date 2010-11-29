@@ -221,6 +221,20 @@ public interface HSClient {
 			HandlerSocketException;
 
 	/**
+	 * Delete data from mysql,set limit to 1,offset to 0 and FindOperator to EQ
+	 * 
+	 * @see delete
+	 * @param indexId
+	 * @param keys
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int delete(int indexId, String[] keys) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
+
+	/**
 	 * Insert data
 	 * 
 	 * @param indexId
