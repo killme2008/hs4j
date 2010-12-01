@@ -16,8 +16,6 @@ import java.sql.ResultSet;
 import java.util.concurrent.TimeoutException;
 
 import com.google.code.hs4j.exception.HandlerSocketException;
-import com.google.code.hs4j.network.core.SocketOption;
-import com.google.code.hs4j.network.core.impl.StandardSocketOption;
 
 /**
  * A HandlerSocket client
@@ -286,14 +284,6 @@ public interface HSClient {
 	 */
 	public void setAllowAutoReconnect(boolean allowAutoReconnect);
 
-	/**
-	 * Set TCP socket option
-	 * 
-	 * @see StandardSocketOption
-	 * @param socketOption
-	 * @param value
-	 */
-	public <T> void setSocketOption(SocketOption<T> socketOption, T value);
 
 	/**
 	 * Default thread number for reading nio's receive buffer and dispatch

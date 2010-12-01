@@ -282,6 +282,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		this.selectorManager.registerSession(session, EventType.ENABLE_READ);
 		session.start();
 		session.onEvent(EventType.CONNECTED, null);
+		this.hsClient.notifyConnected(session);
 		this.openIndexExectur.execute(new AddSessionTask(session));
 		return session;
 	}

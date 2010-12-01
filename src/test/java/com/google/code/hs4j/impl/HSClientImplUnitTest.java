@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,6 +16,8 @@ import org.junit.Test;
 
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
+import com.google.code.hs4j.HSClientBuilder;
+import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.core.impl.HandlerAdapter;
 import com.google.code.hs4j.network.nio.TCPController;
@@ -187,6 +191,58 @@ public class HSClientImplUnitTest {
 		Thread.sleep(10000);
 		assertEquals(5, server.getSessionSet().size());
 
+	}
+
+	@Test
+	public void testStateListener() throws Exception {
+		final AtomicBoolean started = new AtomicBoolean();
+		final AtomicBoolean stopped = new AtomicBoolean();
+		final AtomicInteger connectedCount = new AtomicInteger(0);
+
+		HSClientStateListener listener = new HSClientStateListener() {
+
+			public void onStarted(HSClient client) {
+				started.set(true);
+
+			}
+
+			public void onShutDown(HSClient client) {
+				stopped.set(true);
+
+			}
+
+			public void onException(HSClient client, Throwable throwable) {
+
+			}
+
+			public void onDisconnected(HSClient client,
+					InetSocketAddress inetSocketAddress) {
+
+			}
+
+			public void onConnected(HSClient client,
+					InetSocketAddress inetSocketAddress) {
+				connectedCount.incrementAndGet();
+			}
+		};
+		this.hsClient.shutdown();
+		assertFalse(started.get());
+		assertFalse(stopped.get());
+		assertEquals(0, connectedCount.get());
+
+		HSClientBuilder builder = new HSClientBuilderImpl();
+		builder.setServerAddress(this.props.getProperty("hs.hostname"), Integer
+				.parseInt(this.props.getProperty("hs.port")));
+		builder.addStateListeners(listener);
+		builder.setConnectionPoolSize(10);
+		this.hsClient = builder.build();
+
+		assertTrue(started.get());
+		assertFalse(stopped.get());
+		assertEquals(10, connectedCount.get());
+
+		this.hsClient.shutdown();
+		assertTrue(stopped.get());
 	}
 
 	@Test(expected = HandlerSocketException.class)

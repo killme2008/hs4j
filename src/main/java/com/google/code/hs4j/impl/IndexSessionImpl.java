@@ -54,7 +54,6 @@ public class IndexSessionImpl implements IndexSession {
 		return this.delete(values, operator, 1, 0);
 	}
 
-	@Override
 	public int delete(String[] keys) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
 		return this.delete(keys, FindOperator.EQ);

@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,13 +31,13 @@ import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.IndexSession;
 import com.google.code.hs4j.command.text.TextCommandFactory;
 import com.google.code.hs4j.exception.HandlerSocketException;
-import com.google.code.hs4j.network.config.Configuration;
 import com.google.code.hs4j.network.core.Session;
 import com.google.code.hs4j.network.core.SocketOption;
-import com.google.code.hs4j.network.core.impl.StandardSocketOption;
+import com.google.code.hs4j.network.hs.HandlerSocketClientStateListenerAdapter;
 import com.google.code.hs4j.network.hs.HandlerSocketConnector;
 import com.google.code.hs4j.network.hs.HandlerSocketConnectorImpl;
 import com.google.code.hs4j.network.hs.HandlerSocketHandler;
+import com.google.code.hs4j.network.hs.HandlerSocketSession;
 import com.google.code.hs4j.network.hs.codec.HandlerSocketCodecFactory;
 import com.google.code.hs4j.utils.HSUtils;
 
@@ -65,7 +64,8 @@ public class HSClientImpl implements HSClient {
 	private static AtomicInteger INDEX_COUNTER = new AtomicInteger();
 
 	@SuppressWarnings("unchecked")
-	private final Map<SocketOption, Object> socketOptions = getDefaultSocketOptions();
+	private Map<SocketOption, Object> socketOptions = HSClientBuilderImpl
+			.getDefaultSocketOptions();
 
 	private final ConcurrentHashMap<Integer/* index id */, IndexRecord/*
 																		 * index
@@ -75,27 +75,6 @@ public class HSClientImpl implements HSClient {
 	private final CopyOnWriteArrayList<HSClientStateListener> hsClientStateListeners = new CopyOnWriteArrayList<HSClientStateListener>();
 
 	private final InetSocketAddress remoteAddr;
-
-	public static final Configuration getDefaultConfiguration() {
-		final Configuration configuration = new Configuration();
-		configuration.setSessionReadBufferSize(DEFAULT_SESSION_READ_BUFF_SIZE);
-		configuration.setReadThreadCount(DEFAULT_READ_THREAD_COUNT);
-		configuration.setSessionIdleTimeout(-1);
-		configuration.setWriteThreadCount(0);
-		return configuration;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static final Map<SocketOption, Object> getDefaultSocketOptions() {
-		Map<SocketOption, Object> map = new HashMap<SocketOption, Object>();
-		map.put(StandardSocketOption.TCP_NODELAY, DEFAULT_TCP_NO_DELAY);
-		map.put(StandardSocketOption.SO_RCVBUF, DEFAULT_TCP_RECV_BUFF_SIZE);
-		map.put(StandardSocketOption.SO_KEEPALIVE, DEFAULT_TCP_KEEPLIVE);
-		map.put(StandardSocketOption.SO_SNDBUF, DEFAULT_TCP_SEND_BUFF_SIZE);
-		map.put(StandardSocketOption.SO_LINGER, 0);
-		map.put(StandardSocketOption.SO_REUSEADDR, true);
-		return map;
-	}
 
 	public IndexSession openIndexSession(int indexId, String dbname,
 			String tableName, String indexName, String[] columns)
@@ -193,7 +172,7 @@ public class HSClientImpl implements HSClient {
 	 */
 	public HSClientImpl(InetSocketAddress inetSocketAddress, int poolSize)
 			throws IOException {
-		this(new TextCommandFactory(), inetSocketAddress, poolSize);
+		this(new TextCommandFactory(), inetSocketAddress, null, null, poolSize);
 	}
 
 	/**
@@ -204,8 +183,12 @@ public class HSClientImpl implements HSClient {
 	 * @param remoteAddr
 	 * @throws IOException
 	 */
+	@SuppressWarnings("unchecked")
 	public HSClientImpl(CommandFactory commandFactory,
-			InetSocketAddress remoteAddr, int poolSize) throws IOException {
+			InetSocketAddress remoteAddr,
+			List<HSClientStateListener> stateListeners,
+			final Map<SocketOption, Object> socketOptions, int poolSize)
+			throws IOException {
 		super();
 		if (commandFactory == null) {
 			throw new NullPointerException("null commandFactory");
@@ -213,9 +196,15 @@ public class HSClientImpl implements HSClient {
 		if (remoteAddr == null) {
 			throw new NullPointerException("null remoteAddr");
 		}
+		if (stateListeners != null) {
+			this.hsClientStateListeners.addAll(stateListeners);
+		}
 		if (poolSize <= 0) {
 			throw new IllegalArgumentException(
 					"poolSize must be greater than zero");
+		}
+		if (socketOptions != null) {
+			this.socketOptions = socketOptions;
 		}
 		this.commandFactory = commandFactory;
 		this.remoteAddr = remoteAddr;
@@ -228,13 +217,18 @@ public class HSClientImpl implements HSClient {
 
 	private void initConnectorAndConnect(CommandFactory commandFactory,
 			InetSocketAddress remoteAddr, int poolSize) throws IOException {
-		this.connector = new HandlerSocketConnectorImpl(
-				getDefaultConfiguration(), commandFactory, poolSize, this);
+		this.connector = new HandlerSocketConnectorImpl(HSClientBuilderImpl
+				.getDefaultConfiguration(), commandFactory, poolSize, this);
 		this.ioHandler = new HandlerSocketHandler(this);
 		this.connector.setHandler(this.ioHandler);
 		this.connector.setCodecFactory(new HandlerSocketCodecFactory());
 		this.connector.setSessionTimeout(-1);
 		this.connector.setSocketOptions(this.socketOptions);
+		for (HSClientStateListener listener : this.hsClientStateListeners) {
+			this.connector
+					.addStateListener(new HandlerSocketClientStateListenerAdapter(
+							listener, this));
+		}
 		this.connector.start();
 		for (int i = 0; i < poolSize; i++) {
 			try {
@@ -298,6 +292,12 @@ public class HSClientImpl implements HSClient {
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
 
+	}
+
+	public void notifyConnected(HandlerSocketSession session) {
+		for (HSClientStateListener listener : this.hsClientStateListeners) {
+			listener.onConnected(this, session.getRemoteSocketAddress());
+		}
 	}
 
 	public int delete(int indexId, String[] keys, FindOperator operator,
