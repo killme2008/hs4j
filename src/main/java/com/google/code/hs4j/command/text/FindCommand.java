@@ -62,11 +62,29 @@ public class FindCommand extends AbstractCommand {
 		int cols = this.fieldList.length;
 		List<byte[]> currentRow = new ArrayList<byte[]>(this.fieldList.length);
 		int currentCols = 0;
+		int resultByteSize = 0;
 		for (int i = 0; i < data.length; i++) {
 			if (data[i] == TOKEN_SEPARATOR || data[i] == COMMAND_TERMINATE) {
-				byte[] colData = new byte[i - offset];
-				System.arraycopy(data, offset, colData, 0, colData.length);
+				/**
+				 * Patched by sam.tingleff
+				 * "A character in the range [0x00 - 0x0f] is prefixed by 0x01 and shifted by 0x40"
+				 */
+				byte[] colData = new byte[resultByteSize];
+				boolean shift = false;
+				int colDataIndex = 0;
+				// j must be less than i
+				for (int j = offset; j < i; ++j) {
+					byte b = data[j];
+					if (b == 0x01)
+						shift = true;
+					else {
+						colData[colDataIndex] = (shift) ? (byte) (b - 0x40) : b;
+						shift = false;
+						++colDataIndex;
+					}
+				}
 				currentRow.add(colData);
+				resultByteSize = 0; // resultByteSize must reset to zero
 				currentCols++;
 				offset = i + 1;
 				if (currentCols == cols) {
@@ -74,7 +92,10 @@ public class FindCommand extends AbstractCommand {
 					rows.add(currentRow);
 					currentRow = new ArrayList<byte[]>(this.fieldList.length);
 				}
+			} else if (data[i] != 0x01) {
+				++resultByteSize;
 			}
+
 		}
 		if (!currentRow.isEmpty()) {
 			rows.add(currentRow);
