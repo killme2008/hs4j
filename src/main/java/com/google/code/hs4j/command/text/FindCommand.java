@@ -58,22 +58,22 @@ public class FindCommand extends AbstractCommand {
 			int index) {
 		List<List<byte[]>> rows = new ArrayList<List<byte[]>>(this
 				.getNumColumns());
-		int offset = 0;
+		int colOffset = 0;
 		int cols = this.fieldList.length;
 		List<byte[]> currentRow = new ArrayList<byte[]>(this.fieldList.length);
 		int currentCols = 0;
-		int resultByteSize = 0;
+		int colBytesSize = 0;
 		for (int i = 0; i < data.length; i++) {
 			if (data[i] == TOKEN_SEPARATOR || data[i] == COMMAND_TERMINATE) {
 				/**
 				 * Patched by sam.tingleff
 				 * "A character in the range [0x00 - 0x0f] is prefixed by 0x01 and shifted by 0x40"
 				 */
-				byte[] colData = new byte[resultByteSize];
+				byte[] colData = new byte[colBytesSize];
 				boolean shift = false;
 				int colDataIndex = 0;
 				// j must be less than i
-				for (int j = offset; j < i; ++j) {
+				for (int j = colOffset; j < i; ++j) {
 					byte b = data[j];
 					if (b == 0x01)
 						shift = true;
@@ -84,16 +84,16 @@ public class FindCommand extends AbstractCommand {
 					}
 				}
 				currentRow.add(colData);
-				resultByteSize = 0; // resultByteSize must reset to zero
+				colBytesSize = 0; // colBytesSize must reset to zero
 				currentCols++;
-				offset = i + 1;
+				colOffset = i + 1;
 				if (currentCols == cols) {
 					currentCols = 0;
 					rows.add(currentRow);
 					currentRow = new ArrayList<byte[]>(this.fieldList.length);
 				}
 			} else if (data[i] != 0x01) {
-				++resultByteSize;
+				++colBytesSize;
 			}
 
 		}
