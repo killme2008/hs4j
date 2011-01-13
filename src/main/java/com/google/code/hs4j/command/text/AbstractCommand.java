@@ -116,7 +116,7 @@ public abstract class AbstractCommand implements Command {
 			buf.put((byte) 0x00);
 		} else {
 			for (byte b : token) {
-				if (b <= 0x0f) {
+				if (b >= 0 && b <= 0x0f) {
 					buf.put((byte) 0x01);
 					buf.put((byte) (b | 0x40));
 				} else {
