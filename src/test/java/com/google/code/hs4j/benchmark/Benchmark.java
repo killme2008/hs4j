@@ -6,11 +6,13 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.dbcp.BasicDataSource;
 
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.IndexSession;
+import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.impl.HSClientImpl;
 import com.google.code.hs4j.network.util.ResourcesUtils;
 
@@ -31,6 +33,12 @@ public class Benchmark {
 	public static void main(String[] args) throws Exception {
 		// testMysql();
 
+		testHandlerSocket();
+	}
+
+	private static void testHandlerSocket() throws IOException,
+			InterruptedException, TimeoutException, HandlerSocketException,
+			BrokenBarrierException {
 		HSClient hsClient = new HSClientImpl(new InetSocketAddress(9999), 100);
 		final String[] columns = { "id", "last_name", "first_name", "duty",
 				"cellphone", "housephone", "telephone", "office_fax",

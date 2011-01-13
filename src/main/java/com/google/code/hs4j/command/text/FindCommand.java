@@ -78,7 +78,8 @@ public class FindCommand extends AbstractCommand {
 					if (b == 0x01)
 						shift = true;
 					else {
-						colData[colDataIndex] = (shift) ? (byte) (b - 0x40) : b;
+						colData[colDataIndex] = (shift) ? (byte) (b & ~0x40)
+								: b;
 						shift = false;
 						++colDataIndex;
 					}
