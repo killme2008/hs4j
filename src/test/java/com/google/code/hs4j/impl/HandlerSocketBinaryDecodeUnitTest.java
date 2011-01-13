@@ -125,7 +125,7 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 	private Connection getConnection() throws Exception {
 		Class.forName("com.mysql.jdbc.Driver").newInstance();
 		Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/mytest",
-				"root", "212002");
+				"root", "");
 		return conn;
 	}
 }
