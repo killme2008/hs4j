@@ -51,13 +51,13 @@ public class IndexSessionImplUnitTest {
 	@Test
 	public void testFindInsertFindUpdateFindDeleteFind() throws Exception {
 		// find null
-		final String[] keys = { "dennis", "killme2008@gmail.com" };
+		final String[] keys = { "dennis", "killme2008@\tgmail.com" };
 		ResultSet rs = this.session.find(keys);
 		assertFalse(rs.next());
 
 		// insert
 		assertTrue(this.session.insert(new String[] { "0", "dennis",
-				"killme2008@gmail.com", "27", "2010-11-28 13:24:00" }));
+				"killme2008@\tgmail.com", "27", "2010-11-28 13:24:00" }));
 
 		// find once
 		rs = this.session.find(keys);
@@ -65,7 +65,7 @@ public class IndexSessionImplUnitTest {
 
 		System.out.println(rs.getInt(1));
 		assertEquals("dennis", rs.getString(2));
-		assertEquals("killme2008@gmail.com", rs.getString(3));
+		assertEquals("killme2008@\tgmail.com", rs.getString(3));
 		assertEquals(27, rs.getInt(4));
 		assertFalse(rs.next());
 

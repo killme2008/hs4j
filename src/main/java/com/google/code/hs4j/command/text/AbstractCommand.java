@@ -98,14 +98,8 @@ public abstract class AbstractCommand implements Command {
 		if (token == null) {
 			buf.put((byte) 0x00);
 		} else {
-			for (char c : token.toCharArray()) {
-				if (c > 255) {
-					buf.putChar(c);
-				} else {
-					buf.put((byte) c);
-
-				}
-			}
+			byte[] bytes = decodeString(token);
+			writeToken(buf, bytes);
 		}
 	}
 
@@ -114,7 +108,12 @@ public abstract class AbstractCommand implements Command {
 			buf.put((byte) 0x00);
 		} else {
 			for (byte b : token) {
-				buf.put(b);
+				if (b <= 0x0f) {
+					buf.put((byte) 0x01);
+					buf.put((byte) (b | 0x40));
+				} else {
+					buf.put(b);
+				}
 			}
 		}
 	}
@@ -272,6 +271,15 @@ public abstract class AbstractCommand implements Command {
 	public String encodingString(byte[] data) {
 		try {
 			return new String(data, this.encoding);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException("Unsupported encoding:" + this.encoding,
+					e);
+		}
+	}
+
+	public byte[] decodeString(String s) {
+		try {
+			return s.getBytes(this.encoding);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("Unsupported encoding:" + this.encoding,
 					e);
