@@ -68,6 +68,14 @@ public abstract class AbstractCommand implements Command {
 
 	}
 
+	public String getEncoding() {
+		return encoding;
+	}
+
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
+	}
+
 	public IoBuffer getIoBuffer() {
 		return this.buffer;
 	}
@@ -137,6 +145,19 @@ public abstract class AbstractCommand implements Command {
 			}
 		}
 		return sb.toString();
+	}
+
+	protected int length(byte[][] values) {
+		if (values == null || values.length == 0) {
+			return 0;
+		}
+		int result = 0;
+		for (byte[] value : values) {
+			if (value != null) {
+				result += value.length;
+			}
+		}
+		return result;
 	}
 
 	protected int length(String[] values) {

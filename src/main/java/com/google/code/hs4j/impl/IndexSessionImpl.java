@@ -17,6 +17,7 @@ import java.util.concurrent.TimeoutException;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.IndexSession;
+import com.google.code.hs4j.ModifyStatement;
 import com.google.code.hs4j.exception.HandlerSocketException;
 
 /**
@@ -90,6 +91,10 @@ public class IndexSessionImpl implements IndexSession {
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
 		return this.update(keys, values, operator, 1, 0);
+	}
+
+	public ModifyStatement createStatement()throws HandlerSocketException {
+		return this.client.createStatement(this.indexId);
 	}
 
 }

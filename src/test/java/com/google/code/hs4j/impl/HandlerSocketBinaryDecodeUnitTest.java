@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import com.google.code.hs4j.HSClient;
+import com.google.code.hs4j.ModifyStatement;
 
 import junit.framework.TestCase;
 
@@ -29,7 +30,7 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 		byte[] read = null;
 
 		// write over jdbc
-		writeBytesJDBC(key, written);
+		writeBytesHsj4(key, written);
 
 		// read over jdbc
 		read = readBytesJDBC(key);
@@ -88,6 +89,20 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 		}
 	}
 
+	public void writeBytesHsj4(String id, byte[] bytes) throws Exception {
+		HSClient client = new HSClientImpl("localhost", 9999);
+		client.openIndex(0, "mytest", "hs4jtest", "PRIMARY",
+				new String[] { "value" });
+		ModifyStatement stmt = client.createStatement(0);
+		try {
+			stmt.setString(1, id);
+			stmt.setBytes(2, bytes);
+			stmt.insert();
+		} finally {
+			client.shutdown();
+		}
+	}
+
 	private void writeBytes(Connection conn, String id, byte[] bytes)
 			throws Exception {
 		PreparedStatement ps = conn
@@ -124,8 +139,8 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 
 	private Connection getConnection() throws Exception {
 		Class.forName("com.mysql.jdbc.Driver").newInstance();
-		Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/mytest",
-				"root", "");
+		Connection conn = DriverManager.getConnection(
+				"jdbc:mysql://localhost/mytest", "root", "");
 		return conn;
 	}
 }

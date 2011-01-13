@@ -18,6 +18,12 @@ package com.google.code.hs4j;
  * @date 2010-11-27
  */
 public interface CommandFactory {
+	/**
+	 * Set commands encoding
+	 * 
+	 * @param encoding
+	 */
+	public void setEncoding(String encoding);
 
 	/**
 	 * Returns protocol type
@@ -46,7 +52,7 @@ public interface CommandFactory {
 	 * @param values
 	 * @return
 	 */
-	public Command createInsertCommand(String id, String[] values);
+	public Command createInsertCommand(String id, byte[][] values);
 
 	/**
 	 * create a find command
@@ -74,7 +80,7 @@ public interface CommandFactory {
 	 * @return
 	 */
 	public Command createUpdateCommand(String id, FindOperator operator,
-			String[] keys, String[] values, int limit, int offset);
+			String[] keys, byte[][] values, int limit, int offset);
 
 	/**
 	 * create delete command

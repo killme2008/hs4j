@@ -29,6 +29,7 @@ import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.IndexSession;
+import com.google.code.hs4j.ModifyStatement;
 import com.google.code.hs4j.command.text.TextCommandFactory;
 import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.core.Session;
@@ -58,6 +59,8 @@ public class HSClientImpl implements HSClient {
 
 	private HandlerSocketHandler ioHandler;
 
+	private String encoding = DEFAULT_ENCODING;
+
 	/**
 	 * Index id counter
 	 */
@@ -85,6 +88,19 @@ public class HSClientImpl implements HSClient {
 			return new IndexSessionImpl(this, indexId, columns);
 		} else {
 			return null;
+		}
+	}
+
+	public String getEncoding() {
+		return encoding;
+	}
+
+	public void setEncoding(String encoding) {
+		if (encoding == null || encoding.trim().length() == 0)
+			throw new IllegalArgumentException("Invalid encoding:" + encoding);
+		this.encoding = encoding;
+		if (this.commandFactory != null) {
+			this.commandFactory.setEncoding(encoding);
 		}
 	}
 
@@ -207,6 +223,9 @@ public class HSClientImpl implements HSClient {
 			this.socketOptions = socketOptions;
 		}
 		this.commandFactory = commandFactory;
+		if (this.commandFactory != null) {
+			this.commandFactory.setEncoding(this.encoding);
+		}
 		this.remoteAddr = remoteAddr;
 		this.initConnectorAndConnect(commandFactory, remoteAddr, poolSize);
 	}
@@ -286,12 +305,34 @@ public class HSClientImpl implements HSClient {
 	public boolean insert(int indexId, String[] values)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
+		byte[][] bytes = getBytesFromStringArray(values);
+		return insert0(indexId, bytes);
+	}
+
+	public ModifyStatement createStatement(int indexId)
+			throws HandlerSocketException {
+		IndexRecord indexRecord = getRecord(indexId);
+		return new HandlerSocketModifyStatement(indexId,
+				indexRecord.fieldList.length, this);
+	}
+
+	private byte[][] getBytesFromStringArray(String[] values) {
+		byte[][] bytes = new byte[values.length][0];
+		int index = 0;
+		for (String value : values) {
+			bytes[index++] = HSUtils.decodeString(value, this.encoding);
+		}
+		return bytes;
+	}
+
+	protected boolean insert0(int indexId, byte[][] bytes)
+			throws HandlerSocketException, InterruptedException,
+			TimeoutException {
 		Command cmd = this.commandFactory.createInsertCommand(String
-				.valueOf(indexId), values);
+				.valueOf(indexId), bytes);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return cmd.getResponseStatus() == 0;
-
 	}
 
 	public void notifyConnected(HandlerSocketSession session) {
@@ -325,8 +366,16 @@ public class HSClientImpl implements HSClient {
 			FindOperator operator, int limit, int offset)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
+		byte[][] bytes = getBytesFromStringArray(values);
+		return update0(indexId, keys, operator, limit, offset, bytes);
+	}
+
+	protected int update0(int indexId, String[] keys, FindOperator operator,
+			int limit, int offset, byte[][] bytes)
+			throws HandlerSocketException, InterruptedException,
+			TimeoutException {
 		Command cmd = this.commandFactory.createUpdateCommand(String
-				.valueOf(indexId), operator, keys, values, limit, offset);
+				.valueOf(indexId), operator, keys, bytes, limit, offset);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return (Integer) cmd.getResult();

@@ -14,7 +14,8 @@ public class ModifyCommandUnitTest extends AbstractCommandUnitTest {
 	@Override
 	public AbstractCommand createCommand() {
 		final String id = "1";
-		final String[] values = { "1", "green", "password" };
+		final byte[][] values = { "1".getBytes(), "green".getBytes(),
+				"password".getBytes() };
 		final String[] keys = { "dennis" };
 		return new ModifyCommand(id, FindOperator.EQ, keys, values, 1, 0, "U");
 	}

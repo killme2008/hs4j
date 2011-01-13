@@ -23,6 +23,13 @@ import com.google.code.hs4j.Protocol;
  * @date 2010-11-27
  */
 public class TextCommandFactory implements CommandFactory {
+	private String encoding;
+
+	public void setEncoding(String encoding) {
+		if (encoding == null || encoding.trim().length() == 0)
+			throw new IllegalArgumentException("Invalid encoding:" + encoding);
+		this.encoding = encoding;
+	}
 
 	public Protocol getProtocol() {
 		return Protocol.Text;
@@ -30,28 +37,41 @@ public class TextCommandFactory implements CommandFactory {
 
 	public Command createOpenIndexCommand(String id, String db,
 			String tableName, String indexName, String[] fieldList) {
-		return new OpenIndexCommand(id, db, tableName, indexName, fieldList);
+		OpenIndexCommand result = new OpenIndexCommand(id, db, tableName,
+				indexName, fieldList);
+		result.setEncoding(encoding);
+		return result;
 	}
 
-	public Command createInsertCommand(String id, String[] values) {
-		return new InsertCommand(id, values);
+	public Command createInsertCommand(String id, byte[][] values) {
+		InsertCommand result = new InsertCommand(id, values);
+		result.setEncoding(encoding);
+		return result;
 	}
 
 	public Command createFindCommand(String id, FindOperator operator,
 			String[] keys, int limit, int offset, String[] fieldList) {
-		return new FindCommand(id, operator, keys, limit, offset, fieldList);
+		FindCommand result = new FindCommand(id, operator, keys, limit, offset,
+				fieldList);
+		result.setEncoding(encoding);
+		return result;
 	}
 
 	public Command createUpdateCommand(String id, FindOperator operator,
-			String[] keys, String[] values, int limit, int offset) {
-		return new ModifyCommand(id, operator, keys, values, limit, offset,
-				AbstractCommand.OPERATOR_UPDATE);
+			String[] keys, byte[][] values, int limit, int offset) {
+		ModifyCommand result = new ModifyCommand(id, operator, keys, values,
+				limit, offset, AbstractCommand.OPERATOR_UPDATE);
+		result.setEncoding(encoding);
+		return result;
 	}
 
 	public Command createDeleteCommand(String id, FindOperator operator,
 			String[] keys, int limit, int offset) {
-		return new ModifyCommand(id, operator, keys, new String[keys.length],
-				limit, offset, AbstractCommand.OPERATOR_DELETE);
+		ModifyCommand result = new ModifyCommand(id, operator, keys,
+				new byte[keys.length][0], limit, offset,
+				AbstractCommand.OPERATOR_DELETE);
+		result.setEncoding(encoding);
+		return result;
 	}
 
 }

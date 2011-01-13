@@ -11,11 +11,10 @@
  */
 package com.google.code.hs4j.command.text;
 
-import java.io.UnsupportedEncodingException;
-
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.hs.HandlerSocketSession;
+import com.google.code.hs4j.utils.HSUtils;
 
 /**
  * A find modify command
@@ -27,13 +26,13 @@ public class ModifyCommand extends AbstractCommand {
 	private final String id;
 	private final String operator;
 	private final String[] keys;
-	private final String[] values;
+	private final byte[][] values;
 	private final String modOperation;
 	private final int limit;
 	private final int offset;
 
 	public ModifyCommand(String id, FindOperator operator, String[] keys,
-			String[] values, int limit, int offset, String modOperation) {
+			byte[][] values, int limit, int offset, String modOperation) {
 		super();
 		this.id = id;
 		this.operator = operator.getValue();
@@ -66,7 +65,8 @@ public class ModifyCommand extends AbstractCommand {
 		this.writeToken(buf, String.valueOf(this.keys.length));
 		this.writeTokenSeparator(buf);
 		for (String key : this.keys) {
-			this.writeToken(buf, key == null ? null : this.getBytes(key));
+			this.writeToken(buf, key == null ? null : HSUtils.decodeString(key,
+					this.encoding));
 			this.writeTokenSeparator(buf);
 		}
 		// limit
@@ -82,8 +82,7 @@ public class ModifyCommand extends AbstractCommand {
 		// modify values
 
 		for (int i = 0; i < this.values.length; i++) {
-			this.writeToken(buf, this.values[i] == null ? null : this
-					.getBytes(this.values[i]));
+			this.writeToken(buf, this.values[i]);
 			if (i == this.values.length - 1) {
 				this.writeCommandTerminate(buf);
 			} else {
@@ -94,13 +93,4 @@ public class ModifyCommand extends AbstractCommand {
 		buf.flip();
 		this.buffer = buf;
 	}
-
-	private byte[] getBytes(String key) {
-		try {
-			return key.getBytes(this.encoding);
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException("Unsupported encoding :" + this.encoding);
-		}
-	}
-
 }

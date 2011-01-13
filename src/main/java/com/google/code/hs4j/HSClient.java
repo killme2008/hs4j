@@ -284,6 +284,29 @@ public interface HSClient {
 	 */
 	public void setAllowAutoReconnect(boolean allowAutoReconnect);
 
+	/**
+	 * Set character encoding,default is utf-8
+	 * 
+	 * @param encoding
+	 */
+	public void setEncoding(String encoding);
+
+	/**
+	 * Returns current character encoding
+	 * 
+	 * @return
+	 */
+	public String getEncoding();
+
+	/**
+	 * Create a modify statement for special indexID
+	 * 
+	 * @param indexId
+	 * @return
+	 * @throws HandlerSocketException
+	 */
+	public ModifyStatement createStatement(int indexId)
+			throws HandlerSocketException;
 
 	/**
 	 * Default thread number for reading nio's receive buffer and dispatch
@@ -323,5 +346,10 @@ public interface HSClient {
 	public static final long DEFAULT_OP_TIMEOUT = 10000L;
 
 	public static final int DEFAULT_CONNECTION_POOL_SIZE = 1;
+
+	/**
+	 * Default encoding
+	 */
+	public static final String DEFAULT_ENCODING = "utf-8";
 
 }

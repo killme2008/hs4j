@@ -21,9 +21,9 @@ import com.google.code.hs4j.network.buffer.IoBuffer;
  */
 public class InsertCommand extends AbstractCommand {
 	private final String id;
-	private final String[] values;
+	private final byte[][] values;
 
-	public InsertCommand(String id, String[] values) {
+	public InsertCommand(String id, byte[][] values) {
 		super();
 		this.id = id;
 		this.values = values;
@@ -42,22 +42,18 @@ public class InsertCommand extends AbstractCommand {
 		// key nums
 		this.writeToken(buf, String.valueOf(this.values.length));
 		this.writeTokenSeparator(buf);
-		try {
-			for (int i = 0; i < this.values.length; i++) {
-				this.writeToken(buf, this.values[i] == null ? null
-						: this.values[i].getBytes(this.encoding));
-				if (i == this.values.length - 1) {
-					this.writeCommandTerminate(buf);
-				} else {
-					this.writeTokenSeparator(buf);
-				}
+		for (int i = 0; i < this.values.length; i++) {
+			this
+					.writeToken(buf, this.values[i] == null ? null
+							: this.values[i]);
+			if (i == this.values.length - 1) {
+				this.writeCommandTerminate(buf);
+			} else {
+				this.writeTokenSeparator(buf);
 			}
-		} catch (Exception e) {
-			throw new RuntimeException("Encoding InsertCommand error", e);
 		}
-
 		buf.flip();
-		//System.out.println(Arrays.toString(buf.array()));
+		// System.out.println(Arrays.toString(buf.array()));
 		this.buffer = buf;
 
 	}

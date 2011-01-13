@@ -13,7 +13,8 @@ public class InsertCommandUnitTest extends AbstractCommandUnitTest {
 	@Override
 	public AbstractCommand createCommand() {
 		final String id = "1";
-		final String[] values = { "1", "dennis", "password" };
+		final byte[][] values = { "1".getBytes(), "dennis".getBytes(),
+				"password".getBytes() };
 		return new InsertCommand(id, values);
 	}
 
