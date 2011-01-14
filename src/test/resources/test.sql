@@ -7,4 +7,5 @@ CREATE TABLE IF NOT EXISTS test_user (
    PRIMARY KEY (user_id),  
    KEY NAME_MAIL_INDEX (user_name,user_email),
    KEY AGE_INDEX (age)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+

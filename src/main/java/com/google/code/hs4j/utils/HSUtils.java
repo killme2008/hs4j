@@ -30,4 +30,13 @@ public class HSUtils {
 		}
 	}
 
+	public static byte[][] getByteArrayFromStringArray(String[] a,String encoding) {
+		byte[] [] result=new byte[a.length][0];
+		int index=0;
+		for(String s:a){
+			result[index++]=decodeString(s, encoding);
+		}
+		return result;
+	}
+
 }

@@ -49,10 +49,17 @@ public class ModifyCommand extends AbstractCommand {
 	}
 
 	public void encode() {
-		IoBuffer buf = IoBuffer.allocate(this.id.length() + 1
-				+ this.operator.length() + 1 + this.length(this.values)
-				+ this.length(this.keys) + this.values.length + 1
-				+ this.keys.length + 10);
+		byte[][] keyBytes = HSUtils.getByteArrayFromStringArray(keys,
+				this.encoding);
+		String limitStr = String.valueOf(this.limit);
+		String offsetStr = String.valueOf(this.offset);
+		String kenLen = String.valueOf(this.keys.length);
+
+		int capacity = this.id.length() + 1 + this.operator.length() + 1
+				+ this.length(this.values) + this.length(keyBytes)
+				+ this.values.length + 1 + this.keys.length + limitStr.length()
+				+ 1 + kenLen.length() + 1 + offsetStr.length() + 2;
+		IoBuffer buf = IoBuffer.allocate(capacity);
 		buf.setAutoExpand(true);
 
 		// id
@@ -62,18 +69,17 @@ public class ModifyCommand extends AbstractCommand {
 		this.writeToken(buf, this.operator);
 		this.writeTokenSeparator(buf);
 		// key nums
-		this.writeToken(buf, String.valueOf(this.keys.length));
+		this.writeToken(buf, kenLen);
 		this.writeTokenSeparator(buf);
-		for (String key : this.keys) {
-			this.writeToken(buf, key == null ? null : HSUtils.decodeString(key,
-					this.encoding));
+		for (byte[] data : keyBytes) {
+			this.writeToken(buf, data);
 			this.writeTokenSeparator(buf);
 		}
 		// limit
-		this.writeToken(buf, String.valueOf(this.limit));
+		this.writeToken(buf, limitStr);
 		this.writeTokenSeparator(buf);
 		// offset
-		this.writeToken(buf, String.valueOf(this.offset));
+		this.writeToken(buf, offsetStr);
 		this.writeTokenSeparator(buf);
 		// modify operator
 		this.writeToken(buf, this.modOperation);

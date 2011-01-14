@@ -19,6 +19,7 @@ import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.impl.ResultSetImpl;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.hs.HandlerSocketSession;
+import com.google.code.hs4j.utils.HSUtils;
 
 /**
  * A find command
@@ -105,10 +106,18 @@ public class FindCommand extends AbstractCommand {
 	}
 
 	public void encode() {
-		IoBuffer buf = IoBuffer.allocate(this.id.length() + 1
-				+ this.operator.length() + 1 + this.length(this.keys)
-				+ this.keys.length + 1 + 10);
+		String kenLen = String.valueOf(this.keys.length);
+		String limitStr = String.valueOf(this.limit);
+		String offsetStr = String.valueOf(this.offset);
 
+		byte[][] keyBytes = HSUtils.getByteArrayFromStringArray(keys,this.encoding);
+		
+		int capacity = this.id.length() + 1
+				+ this.operator.length() + 1 + kenLen.length() + 1
+				+ this.length(keyBytes) + this.keys.length + limitStr.length()
+				+ 1 + offsetStr.length() + 1+1;
+		IoBuffer buf = IoBuffer.allocate(capacity);
+		buf.setAutoExpand(true);
 		// id
 		this.writeToken(buf, this.id);
 		this.writeTokenSeparator(buf);
@@ -116,22 +125,22 @@ public class FindCommand extends AbstractCommand {
 		this.writeToken(buf, this.operator);
 		this.writeTokenSeparator(buf);
 		// value nums
-		this.writeToken(buf, String.valueOf(this.keys.length));
+
+		this.writeToken(buf, kenLen);
 		this.writeTokenSeparator(buf);
-		for (String key : this.keys) {
-			this.writeToken(buf, key);
+
+		for (byte[] data : keyBytes) {
+			this.writeToken(buf, data);
 			this.writeTokenSeparator(buf);
 		}
 		// limit
-		this.writeToken(buf, String.valueOf(this.limit));
+		this.writeToken(buf, limitStr);
 		this.writeTokenSeparator(buf);
 		// offset
-		this.writeToken(buf, String.valueOf(this.offset));
+		this.writeToken(buf, offsetStr);
 		this.writeCommandTerminate(buf);
 
 		buf.flip();
-		// System.out.println(Arrays.toString(buf.array()));
 		this.buffer = buf;
 	}
-
 }

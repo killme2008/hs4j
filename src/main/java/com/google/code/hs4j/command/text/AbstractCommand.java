@@ -160,18 +160,6 @@ public abstract class AbstractCommand implements Command {
 		return result;
 	}
 
-	protected int length(String[] values) {
-		if (values == null || values.length == 0) {
-			return 0;
-		}
-		int result = 0;
-		for (String value : values) {
-			if (value != null) {
-				result += value.length();
-			}
-		}
-		return result;
-	}
 
 	private ParseState currentState;
 	private int responseStatus;

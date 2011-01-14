@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
@@ -67,6 +68,12 @@ public abstract class Hs4jTestBase {
 				}
 			}
 		}
+		createTableIfNessary(createTableSql);
+		truncateTable();
+	}
+
+	private void createTableIfNessary(String createTableSql) throws Exception,
+			SQLException {
 		if (createTableSql != null) {
 			Connection conn = getConnection();
 			Statement stmt = conn.createStatement();
@@ -74,6 +81,14 @@ public abstract class Hs4jTestBase {
 			stmt.close();
 			conn.close();
 		}
+	}
+
+	private void truncateTable() throws Exception, SQLException {
+		Connection conn = getConnection();
+		Statement stmt = conn.createStatement();
+		stmt.executeUpdate("truncate table test_user");
+		stmt.close();
+		conn.close();
 	}
 
 	@After
@@ -85,8 +100,9 @@ public abstract class Hs4jTestBase {
 
 	protected Connection getConnection() throws Exception {
 		Class.forName("com.mysql.jdbc.Driver").newInstance();
-		Connection conn = DriverManager.getConnection(
-				props.getProperty("jdbc.url"), props.getProperty("jdbc.user"), props.getProperty("jdbc.password"));
+		Connection conn = DriverManager.getConnection(props
+				.getProperty("jdbc.url")+"?useUnicode=true&characterEncoding=utf-8", props.getProperty("jdbc.user"), props
+				.getProperty("jdbc.password"));
 		return conn;
 	}
 }

@@ -305,7 +305,7 @@ public class HSClientImpl implements HSClient {
 	public boolean insert(int indexId, String[] values)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		byte[][] bytes = getBytesFromStringArray(values);
+		byte[][] bytes = HSUtils.getByteArrayFromStringArray(values,this.encoding);
 		return insert0(indexId, bytes);
 	}
 
@@ -314,15 +314,6 @@ public class HSClientImpl implements HSClient {
 		IndexRecord indexRecord = getRecord(indexId);
 		return new HandlerSocketModifyStatement(indexId,
 				indexRecord.fieldList.length, this);
-	}
-
-	private byte[][] getBytesFromStringArray(String[] values) {
-		byte[][] bytes = new byte[values.length][0];
-		int index = 0;
-		for (String value : values) {
-			bytes[index++] = HSUtils.decodeString(value, this.encoding);
-		}
-		return bytes;
 	}
 
 	protected boolean insert0(int indexId, byte[][] bytes)
@@ -366,7 +357,7 @@ public class HSClientImpl implements HSClient {
 			FindOperator operator, int limit, int offset)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		byte[][] bytes = getBytesFromStringArray(values);
+		byte[][] bytes = HSUtils.getByteArrayFromStringArray(values,this.encoding);
 		return update0(indexId, keys, operator, limit, offset, bytes);
 	}
 

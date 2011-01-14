@@ -1,22 +1,20 @@
 package com.google.code.hs4j.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.Properties;
+import java.sql.Statement;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.code.hs4j.FindOperator;
-import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.Hs4jTestBase;
 import com.google.code.hs4j.IndexSession;
 import com.google.code.hs4j.ModifyStatement;
-import com.google.code.hs4j.network.util.ResourcesUtils;
 
 public class IndexSessionImplUnitTest extends Hs4jTestBase {
 	private IndexSession session;
@@ -30,7 +28,92 @@ public class IndexSessionImplUnitTest extends Hs4jTestBase {
 	}
 
 	@Test
-	public void testFindInsertFindUpdateFindDeleteFind() throws Exception {
+	public void insertByHS4J_FindByJDBC_DeleteByJDBC_FindByHS4J()
+			throws Exception {
+		assertTrue(this.session.insert(new String[] { "0", "阿丹", "阿丹@中国", "27",
+				"2010-11-28 13:24:00" }));
+
+		// find by jdbc
+		Connection conn = getConnection();
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt
+				.executeQuery("select * from test_user where user_name='阿丹'");
+
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt(1));
+		assertEquals("阿丹", rs.getString(2));
+		assertEquals("阿丹@中国", rs.getString(3));
+		assertEquals(27, rs.getInt(4));
+		assertFalse(rs.next());
+		rs.close();
+		stmt.close();
+
+		// find by hs4j
+		final String[] keys = { "阿丹", "阿丹@中国" };
+		rs = this.session.find(keys);
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt(1));
+		assertEquals("阿丹", rs.getString(2));
+		assertEquals("阿丹@中国", rs.getString(3));
+		assertEquals(27, rs.getInt(4));
+		assertFalse(rs.next());
+
+		stmt = conn.createStatement();
+		assertEquals(1, stmt
+				.executeUpdate("delete from test_user where user_name='阿丹'"));
+		stmt.close();
+		rs = this.session.find(keys);
+		assertFalse(rs.next());
+
+	}
+
+	@Test
+	public void insertFindDelete_Chinese_ByHS4j() throws Exception {
+		// find null
+		final String[] keys = { "阿丹", "阿丹@中国" };
+		ResultSet rs = this.session.find(keys);
+		assertFalse(rs.next());
+
+		// insert
+		assertTrue(this.session.insert(new String[] { "0", "阿丹", "阿丹@中国", "27",
+				"2010-11-28 13:24:00" }));
+
+		// find once
+		rs = this.session.find(keys);
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt(1));
+		assertEquals("阿丹", rs.getString(2));
+		assertEquals("阿丹@中国", rs.getString(3));
+		assertEquals(27, rs.getInt(4));
+		assertFalse(rs.next());
+
+		// update
+		assertEquals(1, this.session.update(keys, new String[] { "1", "阿丹",
+				"阿丹@杭州", "109" }, FindOperator.EQ));
+
+		// find twice
+		rs = this.session.find(new String[] { "阿丹" });
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt("user_id"));
+		assertEquals("阿丹", rs.getString("user_name"));
+		assertEquals("阿丹@杭州", rs.getString("user_email"));
+		assertEquals(109, rs.getInt("age"));
+		assertFalse(rs.next());
+
+		// delete
+		assertEquals(1, this.session.delete(new String[] { "阿丹" }));
+		// find null
+		rs = this.session.find(keys);
+		assertFalse(rs.next());
+	}
+
+	@Test
+	public void testFindInsertFindUpdateFindDeleteFind_ByHS4j()
+			throws Exception {
 		// find null
 		final String[] keys = { "dennis", "killme2008@\tgmail.com" };
 		ResultSet rs = this.session.find(keys);
@@ -73,7 +156,7 @@ public class IndexSessionImplUnitTest extends Hs4jTestBase {
 	}
 
 	@Test
-	public void testFindInsertFindUpdateFindDeleteFind_ByModifyStatement()
+	public void testFindInsertFindUpdateFindDeleteFind_ByModifyStatement_ByHS4j()
 			throws Exception {
 		// find null
 		final String[] keys = { "dennis", "killme2008@\tgmail.com" };
@@ -123,6 +206,26 @@ public class IndexSessionImplUnitTest extends Hs4jTestBase {
 				FindOperator.EQ));
 		// find null
 		rs = this.session.find(keys);
+		assertFalse(rs.next());
+	}
+
+	@Test
+	public void testInsertByJDBC_FindByHS4J() throws Exception {
+		Connection conn = getConnection();
+		Statement stmt = conn.createStatement();
+		assertEquals(
+				1,
+				stmt
+						.executeUpdate("insert into test_user values(0,'dennis','test@163.com','27','2010-11-28 13:24:00')"));
+
+		final String[] keys = { "dennis", "test@163.com" };
+		ResultSet rs = this.session.find(keys);
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt(1));
+		assertEquals("dennis", rs.getString(2));
+		assertEquals("test@163.com", rs.getString(3));
+		assertEquals(27, rs.getInt(4));
 		assertFalse(rs.next());
 	}
 

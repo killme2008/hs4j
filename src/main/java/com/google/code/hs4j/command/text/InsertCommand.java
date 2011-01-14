@@ -30,8 +30,12 @@ public class InsertCommand extends AbstractCommand {
 	}
 
 	public void encode() {
-		IoBuffer buf = IoBuffer.allocate(this.id.length() + 1 + 2
-				+ this.length(this.values) + this.values.length + 1 + 10);
+		String valueLen = String.valueOf(this.values.length);
+		int capacity = this.id.length() + 1 + OPERATOR_INSERT.length() + 1
+				+ this.length(this.values) + this.values.length
+				+ valueLen.length() + 2;
+		IoBuffer buf = IoBuffer.allocate(capacity);
+		buf.setAutoExpand(true);
 
 		// id
 		this.writeToken(buf, this.id);
@@ -40,7 +44,8 @@ public class InsertCommand extends AbstractCommand {
 		this.writeToken(buf, OPERATOR_INSERT);
 		this.writeTokenSeparator(buf);
 		// key nums
-		this.writeToken(buf, String.valueOf(this.values.length));
+
+		this.writeToken(buf, valueLen);
 		this.writeTokenSeparator(buf);
 		for (int i = 0; i < this.values.length; i++) {
 			this
@@ -53,7 +58,6 @@ public class InsertCommand extends AbstractCommand {
 			}
 		}
 		buf.flip();
-		// System.out.println(Arrays.toString(buf.array()));
 		this.buffer = buf;
 
 	}

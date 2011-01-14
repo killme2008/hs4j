@@ -12,6 +12,7 @@
 package com.google.code.hs4j.command.text;
 
 import com.google.code.hs4j.network.buffer.IoBuffer;
+import com.google.code.hs4j.utils.HSUtils;
 
 /**
  * Open index command
@@ -37,9 +38,11 @@ public class OpenIndexCommand extends AbstractCommand {
 	}
 
 	public void encode() {
+		byte [][]fieldBytes=HSUtils.getByteArrayFromStringArray(this.fieldList, this.encoding);
+		
 		IoBuffer buf = IoBuffer.allocate(2 + this.id.length() + 1
 				+ this.db.length() + 1 + this.tableName.length() + 1
-				+ this.indexName.length() + 1 + this.length(this.fieldList)
+				+ this.indexName.length() + 1 + this.length(fieldBytes)
 				+ this.fieldList.length);
 		buf.setAutoExpand(true);
 
