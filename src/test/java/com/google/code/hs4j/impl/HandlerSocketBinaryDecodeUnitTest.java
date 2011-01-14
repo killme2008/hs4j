@@ -5,25 +5,34 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import com.google.code.hs4j.HSClient;
+import static org.junit.Assert.*;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.code.hs4j.Hs4jTestBase;
 import com.google.code.hs4j.ModifyStatement;
 
-import junit.framework.TestCase;
+public class HandlerSocketBinaryDecodeUnitTest extends Hs4jTestBase {
 
-public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
-	private Connection conn;
-
+	@Before
+	@Override
 	public void setUp() throws Exception {
-		conn = getConnection();
-		createTable(conn);
+
+		super.setUp();
+		createTable(getConnection());
 	}
 
+	@After
+	@Override
 	public void tearDown() throws Exception {
-		dropTable(conn);
-		conn.close();
+		super.tearDown();
+		dropTable(getConnection());
 	}
 
-	public void testHs4j() throws Exception {
+	@Test
+	public void testWriteByHs4j_ReadBinaryData() throws Exception {
 		String key = "test.key";
 		byte[] written = new byte[] { 0, 104, 101, 108, 108, 111, 32, 119, 111,
 				114, 108, 100 };
@@ -40,20 +49,38 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 		assertEquals(written, read);
 	}
 
+	@Test
+	public void testWriteByJDBC_ReadBinaryData() throws Exception {
+		String key = "test.key";
+		byte[] written = new byte[] { 0, 104, 101, 108, 108, 111, 32, 119, 111,
+				114, 108, 100 };
+		byte[] read = null;
+
+		// write over jdbc
+		writeBytesJDBC(key, written);
+
+		// read over jdbc
+		read = readBytesJDBC(key);
+		assertEquals(written, read);
+
+		read = readBytesHS4J(key);
+		assertEquals(written, read);
+	}
+
 	public void assertEquals(byte[] b1, byte[] b2) {
 		assertNotNull(b1);
 		assertNotNull(b2);
-		assertEquals(b1.length, b2.length);
+		assertTrue(b1.length == b2.length);
 		for (int i = 0; i < b1.length; ++i) {
-			assertEquals(b1[i], b2[i]);
+			assertTrue(b1[i] == b2[i]);
 		}
 	}
 
 	private byte[] readBytesHS4J(String key) throws Exception {
-		HSClient client = new HSClientImpl("localhost", 9998);
-		client.openIndex(0, "mytest", "hs4jtest", "PRIMARY",
+
+		hsClient.openIndex(0, "mytest", "hs4jtest", "PRIMARY",
 				new String[] { "value" });
-		ResultSet rs = client.find(0, new String[] { key });
+		ResultSet rs = hsClient.find(0, new String[] { key });
 		try {
 			if (rs.next()) {
 				byte[] bytes = rs.getBytes(1);
@@ -62,11 +89,11 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 				return new byte[] {};
 		} finally {
 			rs.close();
-			client.shutdown();
 		}
 	}
 
 	private byte[] readBytesJDBC(String key) throws Exception {
+		Connection conn = getConnection();
 		PreparedStatement ps = conn
 				.prepareStatement("select value from hs4jtest where id = ?");
 		try {
@@ -77,6 +104,7 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 			return bytes;
 		} finally {
 			ps.close();
+			conn.close();
 		}
 	}
 
@@ -90,17 +118,14 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 	}
 
 	public void writeBytesHsj4(String id, byte[] bytes) throws Exception {
-		HSClient client = new HSClientImpl("localhost", 9999);
-		client.openIndex(0, "mytest", "hs4jtest", "PRIMARY",
+		hsClient.openIndex(0, "mytest", "hs4jtest", "PRIMARY",
 				new String[] { "value" });
-		ModifyStatement stmt = client.createStatement(0);
-		try {
-			stmt.setString(1, id);
-			stmt.setBytes(2, bytes);
-			stmt.insert();
-		} finally {
-			client.shutdown();
-		}
+		ModifyStatement stmt = hsClient.createStatement(0);
+
+		stmt.setString(1, id);
+		stmt.setBytes(2, bytes);
+		stmt.insert();
+
 	}
 
 	private void writeBytes(Connection conn, String id, byte[] bytes)
@@ -113,6 +138,7 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 			ps.execute();
 		} finally {
 			ps.close();
+			conn.close();
 		}
 	}
 
@@ -123,6 +149,7 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 			ps.execute();
 		} finally {
 			ps.close();
+			conn.close();
 		}
 	}
 
@@ -134,13 +161,8 @@ public class HandlerSocketBinaryDecodeUnitTest extends TestCase {
 			ps.execute();
 		} finally {
 			ps.close();
+			conn.close();
 		}
 	}
 
-	private Connection getConnection() throws Exception {
-		Class.forName("com.mysql.jdbc.Driver").newInstance();
-		Connection conn = DriverManager.getConnection(
-				"jdbc:mysql://localhost/mytest", "root", "");
-		return conn;
-	}
 }

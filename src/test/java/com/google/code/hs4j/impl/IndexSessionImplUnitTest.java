@@ -13,37 +13,17 @@ import org.junit.Test;
 
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
+import com.google.code.hs4j.Hs4jTestBase;
 import com.google.code.hs4j.IndexSession;
 import com.google.code.hs4j.ModifyStatement;
 import com.google.code.hs4j.network.util.ResourcesUtils;
 
-public class IndexSessionImplUnitTest {
+public class IndexSessionImplUnitTest extends Hs4jTestBase {
 	private IndexSession session;
-
-	private HSClient hsClient;
-	private Properties props;
 
 	@Before
 	public void setUp() throws Exception {
-		this.props = new Properties();
-		InputStream in = null;
-		try {
-			in = ResourcesUtils.getResourceAsStream("jdbc.properties");
-			this.props.load(in);
-		} catch (IOException e) {
-
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-
-				}
-			}
-		}
-		this.hsClient = new HSClientImpl(this.props.getProperty("hs.hostname"),
-				Integer.parseInt(this.props.getProperty("hs.port")));
-		String dbname = this.props.getProperty("hs.db");
+		super.setUp();
 		final String[] columns = { "user_id", "user_name", "user_email", "age" };
 		this.session = this.hsClient.openIndexSession(dbname, "test_user",
 				"NAME_MAIL_INDEX", columns);
@@ -144,11 +124,6 @@ public class IndexSessionImplUnitTest {
 		// find null
 		rs = this.session.find(keys);
 		assertFalse(rs.next());
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		this.hsClient.shutdown();
 	}
 
 }

@@ -2,58 +2,25 @@ package com.google.code.hs4j.impl;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
+
 import java.sql.ResultSet;
-import java.util.Properties;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.HSClientBuilder;
 import com.google.code.hs4j.HSClientStateListener;
+import com.google.code.hs4j.Hs4jTestBase;
 import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.core.impl.HandlerAdapter;
 import com.google.code.hs4j.network.nio.TCPController;
-import com.google.code.hs4j.network.util.ResourcesUtils;
 
-public class HSClientImplUnitTest {
-
-	private HSClient hsClient;
-	private Properties props;
-
-	@Before
-	public void setUp() throws Exception {
-		this.props = new Properties();
-		InputStream in = null;
-		try {
-			in = ResourcesUtils.getResourceAsStream("jdbc.properties");
-			this.props.load(in);
-		} catch (IOException e) {
-
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-
-				}
-			}
-		}
-		this.hsClient = new HSClientImpl(this.props.getProperty("hs.hostname"),
-				Integer.parseInt(this.props.getProperty("hs.port")));
-	}
-
-	@After
-	public void tearDown() throws IOException {
-		this.hsClient.shutdown();
-	}
+public class HSClientImplUnitTest extends Hs4jTestBase {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalArguments1() throws Exception {
@@ -65,20 +32,17 @@ public class HSClientImplUnitTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalArguments2() throws Exception {
 		final String[] columns = { "user_id", "user_name", "user_email", "age" };
-		String dbname = this.props.getProperty("hs.db");
 		this.hsClient.openIndex(-1, dbname, "", "NAME_MAIL_INDEX", columns);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalArguments3() throws Exception {
 		final String[] columns = { "user_id", "user_name", "user_email", "age" };
-		String dbname = this.props.getProperty("hs.db");
 		this.hsClient.openIndex(-1, dbname, "test_user", null, columns);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testIllegalArguments4() throws Exception {
-		String dbname = this.props.getProperty("hs.db");
 		this.hsClient.openIndex(-1, dbname, "test_user", "NAME_MAIL_INDEX",
 				null);
 	}
@@ -86,7 +50,6 @@ public class HSClientImplUnitTest {
 	@Test
 	public void testOpenIndexInsertFindUpdateFindDelete() throws Exception {
 		int indexId = 1;
-		String dbname = this.props.getProperty("hs.db");
 		final String[] columns = { "user_id", "user_name", "user_email", "age" };
 
 		assertTrue(this.hsClient.openIndex(indexId, dbname, "test_user",
@@ -128,7 +91,6 @@ public class HSClientImplUnitTest {
 	@Test
 	public void testOpenIndexFindInsertFindFindDelete() throws Exception {
 		int indexId = 1;
-		String dbname = this.props.getProperty("hs.db");
 		final String[] columns = { "user_id", "user_name", "user_email", "age" };
 
 		assertTrue(this.hsClient.openIndex(indexId, dbname, "test_user",
@@ -231,8 +193,7 @@ public class HSClientImplUnitTest {
 		assertEquals(0, connectedCount.get());
 
 		HSClientBuilder builder = new HSClientBuilderImpl();
-		builder.setServerAddress(this.props.getProperty("hs.hostname"), Integer
-				.parseInt(this.props.getProperty("hs.port")));
+		builder.setServerAddress(this.hostName, 9999);
 		builder.addStateListeners(listener);
 		builder.setConnectionPoolSize(10);
 		this.hsClient = builder.build();
