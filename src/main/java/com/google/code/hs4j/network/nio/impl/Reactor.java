@@ -84,7 +84,7 @@ public final class Reactor extends Thread {
 		controller = selectorManager.getController();
 		selector = SystemUtils.openSelector();
 		this.configuration = configuration;
-		setName("Xmemcached-Reactor-" + index);
+		setName("HS4J-Reactor-" + index);
 	}
 
 	public final Selector getSelector() {

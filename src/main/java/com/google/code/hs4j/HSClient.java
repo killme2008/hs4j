@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 import com.google.code.hs4j.exception.HandlerSocketException;
 
 /**
- * A HandlerSocket client
+ * A HandlerSocket client,it is thread-safe.
  * 
  * @author dennis
  * @date 2010-11-27
@@ -41,7 +41,8 @@ public interface HSClient {
 	public boolean isStarted();
 
 	/**
-	 * Just like openIndex method,but return a IndexSession
+	 * Just like openIndex method,but return a IndexSession,please reuse
+	 * IndexSession as much as possible.
 	 * 
 	 * @param indexId
 	 * @param dbname
@@ -59,7 +60,8 @@ public interface HSClient {
 			HandlerSocketException;
 
 	/**
-	 * Open a IndexSession with a auto-generated indexId
+	 * Open a IndexSession with a auto-generated indexId,please reuse
+	 * IndexSession as much as possible.
 	 * 
 	 * @param dbname
 	 * @param tableName

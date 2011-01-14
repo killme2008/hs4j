@@ -17,7 +17,7 @@ import java.util.concurrent.TimeoutException;
 import com.google.code.hs4j.exception.HandlerSocketException;
 
 /**
- * A session with a special index id
+ * A session with a special index id,it is thread-safe.
  * 
  * @author dennis
  * @date 2010-11-27
@@ -177,5 +177,5 @@ public interface IndexSession {
 	 * 
 	 * @return
 	 */
-	public ModifyStatement createStatement()throws HandlerSocketException;
+	public ModifyStatement createStatement() throws HandlerSocketException;
 }
