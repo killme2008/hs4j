@@ -426,6 +426,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		this.soLingerOn = true;
 		this.commandFactory = commandFactory;
 		this.hsClient = hsClient;
+		this.setSelectorPoolSize(2 * Runtime.getRuntime().availableProcessors());
 	}
 
 	@Override
