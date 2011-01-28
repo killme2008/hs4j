@@ -91,9 +91,13 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 				if (!indexMap.isEmpty()) {
 					for (IndexRecord record : indexMap.values()) {
 						try {
-							HandlerSocketConnectorImpl.this.hsClient.openIndex(
-									record.id, record.db, record.tableName,
-									record.indexName, record.fieldList);
+							Command cmd = commandFactory
+									.createOpenIndexCommand(String
+											.valueOf(record.id), record.db,
+											record.tableName, record.indexName,
+											record.fieldList);
+							session.write(cmd);
+							cmd.await(3000, TimeUnit.MILLISECONDS);
 						} catch (InterruptedException e) {
 							Thread.currentThread().interrupt();
 						} catch (Exception e) {
@@ -426,7 +430,9 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		this.soLingerOn = true;
 		this.commandFactory = commandFactory;
 		this.hsClient = hsClient;
-		this.setSelectorPoolSize(2 * Runtime.getRuntime().availableProcessors());
+		this
+				.setSelectorPoolSize(2 * Runtime.getRuntime()
+						.availableProcessors());
 	}
 
 	@Override
