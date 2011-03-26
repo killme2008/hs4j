@@ -1,1 +1,10 @@
-TODO
+
+
+HS4J Change log
+
+-----------------2010-03-26--------------------
+hs4j 0.1 released,highlight:
+1.Supports all handlersocket operations.
+2.Supports connection pool.
+3.Supports healing connections when connection closed by exception.
+
