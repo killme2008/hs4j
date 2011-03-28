@@ -1,10 +1,20 @@
 HS4J is a practical HandlerSocket client for java.
-HandlerSocket is a MySql? plugin developed by akira higuchi 
-to make MySql as a NoSQL storage. 
+HandlerSocket is a MySql plugin developed by akira higuchi
+to make MySql as a NoSQL storage.
 
-More infomation please check wiki page
+More infomation please check wiki page:
 http://code.google.com/p/hs4j/wiki/GettingStarted
 
+If you are using maven2 to build your project,you can try it by:
+<dependency>
+      <groupId>com.googlecode.hs4j</groupId>
+      <artifactId>hs4j</artifactId>
+      <version>0.1</version>
+</dependency>
 
 
-                                dennis(killme2008@gmail.com)
+If you have any question or suggestion,please email me killme2008@gmail.com
+
+Author:dennis
+Date: 2011-03
+
