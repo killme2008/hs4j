@@ -28,8 +28,8 @@ public @interface HandlerSocket {
     INSERT {
 
       @Override
-      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotationLocator locator) {
-        final Collector<String[]> valuesCollector = createValuesCollectorFrom(locator);
+      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotations annotations) {
+        final Collector<String[]> valuesCollector = createValuesCollectorFrom(annotations);
         return new InvocationHandler() {
 
           @Override
@@ -44,12 +44,12 @@ public @interface HandlerSocket {
     UPDATE {
 
       @Override
-      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotationLocator locator) {
-        final FindOperator operator = getOrDefaultEqualOperatorBy(locator);
-        final Collector<String[]> keysCollector = createKeysCollectorBy(locator);
-        final Collector<String[]> valuesCollector = createValuesCollectorFrom(locator);
-        final Collector<Integer> limitCollector = createLimitCollectorBy(locator);
-        final Collector<Integer> offsetCollector = createOffsetCollectorBy(locator);
+      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotations annotations) {
+        final FindOperator operator = getOrDefaultEqualOperatorBy(annotations);
+        final Collector<String[]> keysCollector = createKeysCollectorBy(annotations);
+        final Collector<String[]> valuesCollector = createValuesCollectorFrom(annotations);
+        final Collector<Integer> limitCollector = createLimitCollectorBy(annotations);
+        final Collector<Integer> offsetCollector = createOffsetCollectorBy(annotations);
         return new InvocationHandler() {
 
           @Override
@@ -68,11 +68,11 @@ public @interface HandlerSocket {
     DELELT {
 
       @Override
-      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotationLocator locator) {
-        final FindOperator operator = getOrDefaultEqualOperatorBy(locator);
-        final Collector<String[]> keysCollector = createKeysCollectorBy(locator);
-        final Collector<Integer> limitCollector = createLimitCollectorBy(locator);
-        final Collector<Integer> offsetCollector = createOffsetCollectorBy(locator);
+      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotations annotations) {
+        final FindOperator operator = getOrDefaultEqualOperatorBy(annotations);
+        final Collector<String[]> keysCollector = createKeysCollectorBy(annotations);
+        final Collector<Integer> limitCollector = createLimitCollectorBy(annotations);
+        final Collector<Integer> offsetCollector = createOffsetCollectorBy(annotations);
 
         return new InvocationHandler() {
 
@@ -91,11 +91,11 @@ public @interface HandlerSocket {
     FIND {
 
       @Override
-      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotationLocator locator) {
-        final FindOperator operator = locator.getOnlyOneAnnotation(Operator.class).value();
-        final Collector<String[]> keysCollector = createKeysCollectorBy(locator);
-        final Collector<Integer> limitCollector = createLimitCollectorBy(locator);
-        final Collector<Integer> offsetCollector = createOffsetCollectorBy(locator);
+      InvocationHandler createInvocationHandlerWith(final IndexSession session, ParameterAnnotations annotations) {
+        final FindOperator operator = annotations.getOnlyOneAnnotation(Operator.class).value();
+        final Collector<String[]> keysCollector = createKeysCollectorBy(annotations);
+        final Collector<Integer> limitCollector = createLimitCollectorBy(annotations);
+        final Collector<Integer> offsetCollector = createOffsetCollectorBy(annotations);
 
         return new InvocationHandler() {
 
@@ -115,8 +115,8 @@ public @interface HandlerSocket {
     };
 
     @SuppressWarnings("unchecked")
-    private static ParameterAnnotationLocator createParameterAnnotationLocatorBy(Method method) {
-      return new ParameterAnnotationLocator(method, Operator.class, Limit.class, Offset.class);
+    private static ParameterAnnotations createParameterAnnotationLocatorBy(Method method) {
+      return new ParameterAnnotations(method, Operator.class, Limit.class, Offset.class);
     }
 
     private static String getGenericClassNameFrom(Type genericReturnType) {
@@ -126,8 +126,8 @@ public @interface HandlerSocket {
       return sigin.substring(begin, end); // java.util.Iterator<$GenericClassName>
     }
 
-    private static FindOperator getOrDefaultEqualOperatorBy(ParameterAnnotationLocator locator) {
-      final Operator operator = locator.getOnlyOneMoreAnnotation(Operator.class);
+    private static FindOperator getOrDefaultEqualOperatorBy(ParameterAnnotations annotations) {
+      final Operator operator = annotations.getOnlyOneMoreAnnotation(Operator.class);
       return (operator == null) ? FindOperator.EQ : operator.value();
     }
 
@@ -139,6 +139,6 @@ public @interface HandlerSocket {
       }
     }
 
-    abstract InvocationHandler createInvocationHandlerWith(IndexSession session, ParameterAnnotationLocator locator);
+    abstract InvocationHandler createInvocationHandlerWith(IndexSession session, ParameterAnnotations annotations);
   }
 }

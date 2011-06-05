@@ -7,16 +7,16 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * {@link ParameterAnnotationLocator}
+ * {@link ParameterAnnotations}
  * 
  * @author <a href=mailto:zhong.lunfu@gmail.com>zhongl</a>
  * @created 2011-6-3
  * 
  */
 @SuppressWarnings("unchecked")
-public class ParameterAnnotationLocator {
+public class ParameterAnnotations {
 
-  public ParameterAnnotationLocator(Method method, Class<? extends Annotation>... annotationClasses) {
+  public ParameterAnnotations(Method method, Class<? extends Annotation>... annotationClasses) {
     this.method = method;
     annotationlessParameterIndexs = new ArrayList<Integer>();
     map = new HashMap<Class<? extends Annotation>, List<Coordinate>>();
@@ -44,12 +44,6 @@ public class ParameterAnnotationLocator {
     };
   }
 
-  public List<Coordinate> getCoordinatesOf(Class<? extends Annotation> annotationClass) {
-    final List<Coordinate> coordinates = map.get(annotationClass);
-    if (coordinates != null) return coordinates;
-    throw new NoSuchElementException(annotationClass.toString());
-  }
-
   public Method getMethod() {
     return method;
   }
@@ -74,6 +68,12 @@ public class ParameterAnnotationLocator {
 
   private <T extends Annotation> T getAnnotationBy(Coordinate coordinate) {
     return (T) method.getParameterAnnotations()[coordinate.x][coordinate.y];
+  }
+
+  private List<Coordinate> getCoordinatesOf(Class<? extends Annotation> annotationClass) {
+    final List<Coordinate> coordinates = map.get(annotationClass);
+    if (coordinates != null) return coordinates;
+    throw new NoSuchElementException(annotationClass.toString());
   }
 
   private Coordinate getOnlyOneCoordinateOf(Class<? extends Annotation> annotationClass) {

@@ -16,7 +16,7 @@ public class StaticCollectorFactory {
   private static final int ENTITY_INDEX = 0;
   private static final int PRIMARY_INDEX = 0;
 
-  public static Collector<String[]> createKeysCollectorBy(ParameterAnnotationLocator locator) {
+  public static Collector<String[]> createKeysCollectorBy(ParameterAnnotations locator) {
     final Method method = locator.getMethod();
     final EntityClass entityClass = method.getAnnotation(EntityClass.class);
     if (entityClass != null) { // to find parameter type is entity class.
@@ -27,20 +27,20 @@ public class StaticCollectorFactory {
     return new KeysCollector(locator.getOnlyOneParamterIndexAnnotatedBy(Operator.class));
   }
 
-  private static void assertNotBothEntityClassAndOperatorAreAnnotatedBy(ParameterAnnotationLocator locator) {
+  private static void assertNotBothEntityClassAndOperatorAreAnnotatedBy(ParameterAnnotations locator) {
     if (!locator.getAnnotationsOf(Operator.class).isEmpty())
       throw new IllegalArgumentException("Either " + EntityClass.class + " or " + Operator.class + " can be annotated");
   }
 
-  public static Collector<Integer> createLimitCollectorBy(ParameterAnnotationLocator locator) {
+  public static Collector<Integer> createLimitCollectorBy(ParameterAnnotations locator) {
     return new LimitCollector(locator.getOnlyOneMoreParamterIndexAnnotatedBy(Limit.class));
   }
 
-  public static Collector<Integer> createOffsetCollectorBy(ParameterAnnotationLocator locator) {
+  public static Collector<Integer> createOffsetCollectorBy(ParameterAnnotations locator) {
     return new OffsetCollector(locator.getOnlyOneMoreParamterIndexAnnotatedBy(Offset.class));
   }
 
-  public static Collector<String[]> createValuesCollectorFrom(ParameterAnnotationLocator locator) {
+  public static Collector<String[]> createValuesCollectorFrom(ParameterAnnotations locator) {
     final Method method = locator.getMethod();
     final EntityClass entityClass = method.getAnnotation(EntityClass.class);
     if (entityClass != null) { // to find parameter type is entity class.
