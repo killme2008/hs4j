@@ -4,7 +4,6 @@ import static com.github.zhongl.hs4j.kit.results.ResultSetGetters.*;
 
 import java.lang.reflect.*;
 import java.sql.*;
-import java.util.*;
 
 import net.vidageek.mirror.dsl.*;
 import net.vidageek.mirror.list.dsl.*;
@@ -18,15 +17,19 @@ import com.github.zhongl.hs4j.kit.annotations.*;
  * @created 2011-6-3
  * 
  */
-public final class ResultSetIterator implements Iterator<Object> {
+public final class ResultSetIterator {
+
+  public ResultSetIterator(Class<?> clazz, ResultSet resultSet) {
+    this(clazz.getName(), resultSet);
+  }
+
   public ResultSetIterator(String className, ResultSet resultSet) {
     this.resultSet = resultSet;
     mirror = new Mirror();
     classController = mirror.on(className);
   }
 
-  @Override
-  public boolean hasNext() {
+  public boolean next() {
     try {
       return resultSet.next();
     } catch (final SQLException e) {
@@ -34,8 +37,7 @@ public final class ResultSetIterator implements Iterator<Object> {
     }
   }
 
-  @Override
-  public Object next() {
+  public Object get() {
     final Object instance = classController.invoke().constructor().bypasser();
     classController.reflectAll().fields().mappingTo(new Mapper<Field, Void>() {
 
@@ -44,7 +46,7 @@ public final class ResultSetIterator implements Iterator<Object> {
         try {
           final Object value = getValueFromResultSetBy(field);
           mirror.on(instance).set().field(field).withValue(value);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
           // TODO log as debug.
         }
         return null;
@@ -53,16 +55,13 @@ public final class ResultSetIterator implements Iterator<Object> {
     return instance;
   }
 
-  @Override
-  public void remove() {}
+  private String columnLabelOf(Field field) {
+    final ColumnName columnName = field.getAnnotation(ColumnName.class);
+    return (columnName != null) ? columnName.value() : field.getName();
+  }
 
   private Object getValueFromResultSetBy(Field field) throws SQLException {
     return resultSetGetterOf(field.getType()).get(resultSet, columnLabelOf(field));
-  }
-
-  private String columnLabelOf(Field field) {
-    ColumnName columnName = field.getAnnotation(ColumnName.class);
-    return (columnName != null) ? columnName.value() : field.getName();
   }
 
   private final ResultSet resultSet;

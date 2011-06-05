@@ -2,7 +2,7 @@ package com.github.zhongl.hs4j.kit;
 
 import com.github.zhongl.hs4j.kit.annotations.*;
 
-class User {
+public class User {
 
   public User(Long id, String name, Integer age) {
     super();
