@@ -20,9 +20,9 @@ import com.google.code.hs4j.*;
  */
 public class HandlerSocketProxyFactory extends ProxyFactory {
 
-  private static void assertResultIteratorTypeReturnBy(Method method) {
-    if (method.getReturnType().equals(ResultIterator.class)) return;
-    throw new IllegalArgumentException("A Iterator type should return by method: " + method);
+  private static void assertMethodReturnType(Method method, Class<?> returnTyep) {
+    if (method.getReturnType().equals(returnTyep)) return;
+    throw new IllegalArgumentException(returnTyep + " should return by method: " + method);
   }
 
   private static String[] getColumnsFrom(Field[] fields) {
@@ -55,7 +55,8 @@ public class HandlerSocketProxyFactory extends ProxyFactory {
     final HandlerSocket handlerSocket = method.getAnnotation(HandlerSocket.class);
     if ((handlerSocket == null)) return null;
     final Action action = handlerSocket.value();
-    if (action == FIND) assertResultIteratorTypeReturnBy(method);
+    if (action == FIND) assertMethodReturnType(method, ResultIterator.class);
+    else assertMethodReturnType(method, void.class);
     final IndexSession session = getOrCreateIndexSessionWith(method, database, table);
     return action.createInvocationHandlerWith(method, session);
   }
