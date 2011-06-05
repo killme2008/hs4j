@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.zhongl</groupId>
 	<artifactId>hs4j-kit</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 	<name>HS4J Kit</name>
 
 	<build>
