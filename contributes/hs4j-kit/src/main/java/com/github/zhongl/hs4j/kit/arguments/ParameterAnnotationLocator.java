@@ -13,6 +13,7 @@ import java.util.*;
  * @created 2011-6-3
  * 
  */
+@SuppressWarnings("unchecked")
 public class ParameterAnnotationLocator {
 
   public ParameterAnnotationLocator(Method method, Class<? extends Annotation>... annotationClasses) {
@@ -33,7 +34,7 @@ public class ParameterAnnotationLocator {
 
       @Override
       public T get(int index) {
-        return getAnnotationBy(coordinates.get(index));
+        return (T) getAnnotationBy(coordinates.get(index));
       }
 
       @Override
@@ -54,10 +55,9 @@ public class ParameterAnnotationLocator {
   }
 
   public <T extends Annotation> T getOnlyOneAnnotation(Class<T> annotationClass) {
-    return getAnnotationBy(getOnlyOneCoordinateOf(annotationClass));
+    return (T) getAnnotationBy(getOnlyOneCoordinateOf(annotationClass));
   }
 
-  @SuppressWarnings("unchecked")
   public <T extends Annotation> T getOnlyOneMoreAnnotation(Class<T> annotationClass) {
     final Coordinate coordinate = getOnlyOneMoreCoordinateOf(annotationClass);
     return (coordinate == null) ? null : (T) method.getParameterAnnotations()[coordinate.x][coordinate.y];
@@ -72,7 +72,6 @@ public class ParameterAnnotationLocator {
     return getOnlyOneCoordinateOf(annotationClass).x;
   }
 
-  @SuppressWarnings("unchecked")
   private <T extends Annotation> T getAnnotationBy(Coordinate coordinate) {
     return (T) method.getParameterAnnotations()[coordinate.x][coordinate.y];
   }
