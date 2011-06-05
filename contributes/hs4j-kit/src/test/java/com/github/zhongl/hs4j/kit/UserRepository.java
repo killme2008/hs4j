@@ -6,6 +6,7 @@ import static com.google.code.hs4j.FindOperator.*;
 import java.util.*;
 
 import com.github.zhongl.hs4j.kit.annotations.*;
+import com.github.zhongl.hs4j.kit.results.*;
 
 /**
  * {@link UserRepository}
@@ -36,11 +37,11 @@ interface UserRepository {
   @HandlerSocket(FIND)
   @Index("AGE")
   @Columns({ "seq", "name", "age" })
-  Iterator<User> findUserAgeGreaterThan(@Operator(GT) int age, @Offset int offset, @Limit int limit);
+  ResultIterator<User> findUserAgeGreaterThan(@Operator(GT) int age, @Offset int offset, @Limit int limit);
 
   @HandlerSocket(FIND)
   @Columns({ "name", "age" })
-  Iterator<User> findUserBy(@Operator(EQ) long id);
+  ResultIterator<User> findUserBy(@Operator(EQ) long id);
 
   @HandlerSocket(UPDATE)
   @EntityClass(User.class)

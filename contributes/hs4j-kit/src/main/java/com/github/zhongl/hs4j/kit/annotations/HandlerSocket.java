@@ -100,13 +100,14 @@ public @interface HandlerSocket {
         return new InvocationHandler() {
 
           @Override
+          @SuppressWarnings({ "rawtypes", "unchecked" })
           public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             final ResultSet resultSet =
               session.find(keysCollector.collectFrom(args),
                            operator,
                            limitCollector.collectFrom(args),
                            offsetCollector.collectFrom(args));
-            return new ResultSetIterator(getGenericClassNameFrom(method.getGenericReturnType()), resultSet);
+            return new ResultIterator(getGenericClassFrom(method.getGenericReturnType()), resultSet);
           }
 
         };
@@ -119,11 +120,12 @@ public @interface HandlerSocket {
       return new ParameterAnnotations(method, Operator.class, Limit.class, Offset.class);
     }
 
-    private static String getGenericClassNameFrom(Type genericReturnType) {
+    @SuppressWarnings("unchecked")
+    private static <T> Class<T> getGenericClassFrom(Type genericReturnType) throws ClassNotFoundException {
       final String sigin = genericReturnType.toString();
       final int begin = sigin.indexOf('<') + 1;
       final int end = sigin.indexOf('>');
-      return sigin.substring(begin, end); // java.util.Iterator<$GenericClassName>
+      return (Class<T>) Class.forName(sigin.substring(begin, end)); // com.github.zhongl.hs4j.kit.results.ResultIterator<$GenericClassName>
     }
 
     private static FindOperator getOrDefaultEqualOperatorBy(ParameterAnnotations annotations) {

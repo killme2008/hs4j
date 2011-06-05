@@ -8,6 +8,7 @@ import java.util.*;
 
 import com.github.zhongl.hs4j.kit.annotations.*;
 import com.github.zhongl.hs4j.kit.annotations.HandlerSocket.Action;
+import com.github.zhongl.hs4j.kit.results.*;
 import com.google.code.hs4j.*;
 
 /**
@@ -19,8 +20,8 @@ import com.google.code.hs4j.*;
  */
 public class HandlerSocketProxyFactory extends ProxyFactory {
 
-  private static void assertIteratorTypeReturnBy(Method method) {
-    if (method.getReturnType().equals(Iterator.class)) return;
+  private static void assertResultIteratorTypeReturnBy(Method method) {
+    if (method.getReturnType().equals(ResultIterator.class)) return;
     throw new IllegalArgumentException("A Iterator type should return by method: " + method);
   }
 
@@ -54,7 +55,7 @@ public class HandlerSocketProxyFactory extends ProxyFactory {
     final HandlerSocket handlerSocket = method.getAnnotation(HandlerSocket.class);
     if ((handlerSocket == null)) return null;
     final Action action = handlerSocket.value();
-    if (action == FIND) assertIteratorTypeReturnBy(method);
+    if (action == FIND) assertResultIteratorTypeReturnBy(method);
     final IndexSession session = getOrCreateIndexSessionWith(method, database, table);
     return action.createInvocationHandlerWith(method, session);
   }
