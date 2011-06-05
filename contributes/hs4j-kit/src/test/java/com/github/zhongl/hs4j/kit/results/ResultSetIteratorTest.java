@@ -31,8 +31,8 @@ public class ResultSetIteratorTest {
     doReturn(age).when(resultSet).getInt("age");
 
     final ResultSetIterator iterator = new ResultSetIterator(User.class.getName(), resultSet);
-    assertThat(iterator.next(), is(true));
-    final User user = (User) iterator.get();
+    assertThat(iterator.hasNext(), is(true));
+    final User user = (User) iterator.next();
     assertThat(user.id, is(id));
     assertThat(user.name, is(name));
     assertThat(user.age, is(age));

@@ -4,6 +4,7 @@ import static com.github.zhongl.hs4j.kit.results.ResultSetGetters.*;
 
 import java.lang.reflect.*;
 import java.sql.*;
+import java.util.*;
 
 import net.vidageek.mirror.dsl.*;
 import net.vidageek.mirror.list.dsl.*;
@@ -17,7 +18,7 @@ import com.github.zhongl.hs4j.kit.annotations.*;
  * @created 2011-6-3
  * 
  */
-public final class ResultSetIterator {
+public final class ResultSetIterator implements Iterator<Object> {
 
   public ResultSetIterator(Class<?> clazz, ResultSet resultSet) {
     this(clazz.getName(), resultSet);
@@ -29,7 +30,8 @@ public final class ResultSetIterator {
     classController = mirror.on(className);
   }
 
-  public boolean next() {
+  @Override
+  public boolean hasNext() {
     try {
       return resultSet.next();
     } catch (final SQLException e) {
@@ -37,7 +39,8 @@ public final class ResultSetIterator {
     }
   }
 
-  public Object get() {
+  @Override
+  public Object next() {
     final Object instance = classController.invoke().constructor().bypasser();
     classController.reflectAll().fields().mappingTo(new Mapper<Field, Void>() {
 
@@ -53,6 +56,12 @@ public final class ResultSetIterator {
       }
     });
     return instance;
+  }
+
+  @Override
+  public void remove() {
+    // TODO Auto-generated method stub
+
   }
 
   private String columnLabelOf(Field field) {
