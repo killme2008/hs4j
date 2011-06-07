@@ -9,7 +9,7 @@ import net.vidageek.mirror.list.dsl.*;
 /**
  * {@link EntityKeysCollector}
  * 
- * @author <a href=mailto:jushi@taobao.com>jushi</a>
+ * @author <a href=mailto:zhong.lunfu@gmail.com>zhongl</a>
  * @created 2011-6-5
  * 
  */

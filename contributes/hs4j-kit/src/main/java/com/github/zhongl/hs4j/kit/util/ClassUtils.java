@@ -10,6 +10,7 @@ import java.lang.reflect.*;
  * 
  */
 public class ClassUtils {
+<<<<<<< HEAD
   public static void assertMethodReturnType(Method method, Class<?> returnType) {
     if (method.getReturnType().equals(returnType)) return;
     throw new IllegalArgumentException(returnType + " should return by method: " + method);
@@ -33,6 +34,14 @@ public class ClassUtils {
 
   public static ParameterizedType parameterized(Type type) {
     return (ParameterizedType) type;
+=======
+  @SuppressWarnings("unchecked")
+  public static <T> Class<T> getGenericClassFrom(Type genericReturnType) throws ClassNotFoundException {
+    final String sigin = genericReturnType.toString();
+    final int begin = sigin.indexOf('<') + 1;
+    final int end = sigin.indexOf('>');
+    return (Class<T>) Class.forName(sigin.substring(begin, end));
+>>>>>>> 4c0b133... Abstract ClassUtils and fix some javadoc.
   }
 
   private ClassUtils() {}

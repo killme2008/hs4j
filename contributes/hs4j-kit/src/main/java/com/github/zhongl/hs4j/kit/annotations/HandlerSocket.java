@@ -1,6 +1,7 @@
 package com.github.zhongl.hs4j.kit.annotations;
 
 import static com.github.zhongl.hs4j.kit.arguments.StaticCollectorFactory.*;
+import static com.github.zhongl.hs4j.kit.util.ClassUtils.*;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
@@ -118,14 +119,6 @@ public @interface HandlerSocket {
     @SuppressWarnings("unchecked")
     private static ParameterAnnotations createParameterAnnotationLocatorBy(Method method) {
       return new ParameterAnnotations(method, Operator.class, Limit.class, Offset.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> Class<T> getGenericClassFrom(Type genericReturnType) throws ClassNotFoundException {
-      final String sigin = genericReturnType.toString();
-      final int begin = sigin.indexOf('<') + 1;
-      final int end = sigin.indexOf('>');
-      return (Class<T>) Class.forName(sigin.substring(begin, end)); // com.github.zhongl.hs4j.kit.results.ResultIterator<$GenericClassName>
     }
 
     private static FindOperator getOrDefaultEqualOperatorBy(ParameterAnnotations annotations) {

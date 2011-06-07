@@ -5,7 +5,7 @@ import net.vidageek.mirror.dsl.*;
 /**
  * {@link EntityCollector}
  * 
- * @author <a href=mailto:jushi@taobao.com>jushi</a>
+ * @author <a href=mailto:zhong.lunfu@gmail.com>zhongl</a>
  * @created 2011-6-5
  * 
  */
