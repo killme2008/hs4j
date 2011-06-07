@@ -1,5 +1,9 @@
 package com.github.zhongl.hs4j.kit.proxy;
 
+<<<<<<< HEAD
+=======
+import java.io.*;
+>>>>>>> 74777f9... To contribute hs4j-kit, which can help developers easy to use hs4j.
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -15,7 +19,11 @@ import com.github.zhongl.hs4j.kit.annotations.*;
 public abstract class ProxyFactory {
 
   @SuppressWarnings("unchecked")
+<<<<<<< HEAD
   public <T> T newProxyOf(Class<T> clazz) {
+=======
+  public <T> T newProxyOf(Class<T> clazz) throws IOException {
+>>>>>>> 74777f9... To contribute hs4j-kit, which can help developers easy to use hs4j.
     scanAndMapMethodToInvacationHandlerWith(clazz);
     Class<?>[] interfaces = { clazz };
     return (T) Proxy.newProxyInstance(clazz.getClassLoader(), interfaces, dispatcher);
