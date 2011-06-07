@@ -108,7 +108,8 @@ public @interface HandlerSocket {
                            operator,
                            limitCollector.collectFrom(args),
                            offsetCollector.collectFrom(args));
-            return new ResultIterator(getGenericClassFrom(method.getGenericReturnType()), resultSet);
+            ParameterizedType parameterizedType = (ParameterizedType) method.getGenericReturnType();
+            return new ResultIterator(getOnlyOneTypeArgumentClassFrom(parameterizedType), resultSet);
           }
 
         };

@@ -48,12 +48,24 @@ public class ClassUtils {
 =======
 >>>>>>> fa88cc2... refactor code.
   @SuppressWarnings("unchecked")
+<<<<<<< HEAD
   public static <T> Class<T> getGenericClassFrom(Type genericReturnType) throws ClassNotFoundException {
     final String sigin = genericReturnType.toString();
     final int begin = sigin.indexOf('<') + 1;
     final int end = sigin.indexOf('>');
     return (Class<T>) Class.forName(sigin.substring(begin, end));
 >>>>>>> 4c0b133... Abstract ClassUtils and fix some javadoc.
+=======
+  public static <T> Class<T> getOnlyOneTypeArgumentClassFrom(ParameterizedType parameterizedType) {
+    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+    if (actualTypeArguments.length > 1)
+      throw new IllegalArgumentException(parameterizedType + " has more than one type arguments");
+    return (Class<T>) actualTypeArguments[0];
+  }
+
+  public static boolean isParameterizedType(Type type) {
+    return type instanceof ParameterizedType;
+>>>>>>> 6409ac1... User ParameterizedType refactor ClassUtils.
   }
 
   private ClassUtils() {}
