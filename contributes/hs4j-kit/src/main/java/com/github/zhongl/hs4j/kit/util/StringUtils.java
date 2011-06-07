@@ -16,4 +16,11 @@ public class StringUtils {
     return values;
   }
 
+  public static String join(String... strings) {
+    final StringBuilder sb = new StringBuilder();
+    for (final String string : strings)
+      sb.append(string);
+    return sb.toString();
+  }
+
 }

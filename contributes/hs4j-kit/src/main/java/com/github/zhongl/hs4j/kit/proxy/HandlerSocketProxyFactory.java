@@ -1,6 +1,8 @@
 package com.github.zhongl.hs4j.kit.proxy;
 
 import static com.github.zhongl.hs4j.kit.annotations.HandlerSocket.Action.*;
+import static com.github.zhongl.hs4j.kit.util.ClassUtils.*;
+import static com.github.zhongl.hs4j.kit.util.StringUtils.*;
 import static org.apache.commons.codec.digest.DigestUtils.*;
 
 import java.lang.reflect.*;
@@ -20,11 +22,6 @@ import com.google.code.hs4j.*;
  */
 public class HandlerSocketProxyFactory extends ProxyFactory {
 
-  private static void assertMethodReturnType(Method method, Class<?> returnTyep) {
-    if (method.getReturnType().equals(returnTyep)) return;
-    throw new IllegalArgumentException(returnTyep + " should return by method: " + method);
-  }
-
   private static String[] getColumnsFrom(Field[] fields) {
     final String[] columns = new String[fields.length];
     for (int i = 0; i < columns.length; i++) {
@@ -36,13 +33,6 @@ public class HandlerSocketProxyFactory extends ProxyFactory {
 
   private static boolean has(Columns columns) {
     return columns != null && columns.value().length > 0;
-  }
-
-  private static String join(String... strings) {
-    final StringBuilder sb = new StringBuilder();
-    for (final String string : strings)
-      sb.append(string);
-    return sb.toString();
   }
 
   public HandlerSocketProxyFactory(HSClient hsClient) {
