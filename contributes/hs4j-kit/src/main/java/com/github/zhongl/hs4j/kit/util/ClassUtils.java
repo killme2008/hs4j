@@ -12,6 +12,9 @@ import java.lang.reflect.*;
 public class ClassUtils {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fa88cc2... refactor code.
 =======
 >>>>>>> fa88cc2... refactor code.
   public static void assertMethodReturnType(Method method, Class<?> returnType) {
@@ -19,6 +22,7 @@ public class ClassUtils {
     throw new IllegalArgumentException(returnType + " should return by method: " + method);
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   @SuppressWarnings("unchecked")
   public static <T> Class<T> getOnlyOneTypeArgumentClassFrom(ParameterizedType parameterizedType) {
@@ -39,6 +43,8 @@ public class ClassUtils {
   public static ParameterizedType parameterized(Type type) {
     return (ParameterizedType) type;
 =======
+=======
+>>>>>>> fa88cc2... refactor code.
 =======
 >>>>>>> fa88cc2... refactor code.
   @SuppressWarnings("unchecked")
