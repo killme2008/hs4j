@@ -11,6 +11,7 @@
  */
 package com.google.code.hs4j.command.text;
 
+import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.utils.HSUtils;
 
@@ -21,20 +22,35 @@ import com.google.code.hs4j.utils.HSUtils;
  * @date 2010-11-27
  */
 public class OpenIndexCommand extends AbstractCommand {
+
+	private static final String[] EMPTY= new String[0];
+
 	private final String id;
 	private final String db;
 	private final String tableName;
 	private final String indexName;
 	private final String[] fieldList;
+	private final String[] filterFieldList;
 
 	public OpenIndexCommand(String id, String db, String tableName,
 			String indexName, String[] fieldList) {
+		this(id, db, tableName, indexName, fieldList, null);
+	}
+
+	
+	public OpenIndexCommand(String id, String db, String tableName,
+			String indexName, String[] fieldList, String[] filterFieldList) {
 		super();
 		this.id = id;
 		this.db = db;
 		this.tableName = tableName;
 		this.indexName = indexName;
 		this.fieldList = fieldList;
+		if(filterFieldList != null){
+			this.filterFieldList = filterFieldList;
+		}else{
+			this.filterFieldList = EMPTY;
+		}
 	}
 
 	public void encode() {
@@ -43,7 +59,7 @@ public class OpenIndexCommand extends AbstractCommand {
 		IoBuffer buf = IoBuffer.allocate(2 + this.id.length() + 1
 				+ this.db.length() + 1 + this.tableName.length() + 1
 				+ this.indexName.length() + 1 + this.length(fieldBytes)
-				+ this.fieldList.length);
+				+ this.fieldList.length+ this.fieldList.length);
 		buf.setAutoExpand(true);
 
 		// header
@@ -65,10 +81,15 @@ public class OpenIndexCommand extends AbstractCommand {
 		this.writeToken(buf, join(this.fieldList));
 		this.writeCommandTerminate(buf);
 
+		// filter field list
+		if(filterFieldList.length != 0) {
+			this.writeToken(buf, join(this.filterFieldList));
+			this.writeCommandTerminate(buf);
+		}
+
 		buf.flip();
 
 		this.buffer = buf;
-
 	}
 
 }

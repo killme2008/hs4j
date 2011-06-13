@@ -95,7 +95,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 									.createOpenIndexCommand(String
 											.valueOf(record.id), record.db,
 											record.tableName, record.indexName,
-											record.fieldList);
+											record.fieldList, record.filterFieldList);
 							session.write(cmd);
 							cmd.await(3000, TimeUnit.MILLISECONDS);
 						} catch (InterruptedException e) {

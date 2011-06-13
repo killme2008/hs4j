@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.code.hs4j.Command;
 import com.google.code.hs4j.CommandFactory;
 import com.google.code.hs4j.FindOperator;
+import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.IndexSession;
@@ -83,8 +84,15 @@ public class HSClientImpl implements HSClient {
 			String tableName, String indexName, String[] columns)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException {
-		this.checkParams(dbname, tableName, indexName, columns);
-		if (this.openIndex(indexId, dbname, tableName, indexName, columns)) {
+			return this.openIndexSession(indexId, dbname, tableName, indexName, columns, null);
+	}
+
+	public IndexSession openIndexSession(int indexId, String dbname,
+			String tableName, String indexName, String[] columns, String[] fcolumns)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException {
+		this.checkParams(dbname, tableName, indexName, columns, fcolumns);
+		if (this.openIndex(indexId, dbname, tableName, indexName, columns, fcolumns)) {
 			return new IndexSessionImpl(this, indexId, columns);
 		} else {
 			return null;
@@ -110,7 +118,7 @@ public class HSClientImpl implements HSClient {
 	}
 
 	private void checkParams(String dbname, String tableName, String indexName,
-			String[] columns) {
+			String[] columns, String[] fcolumns) {
 		if (HSUtils.isBlank(dbname)) {
 			throw new IllegalArgumentException("blank dbname:" + dbname);
 		}
@@ -126,6 +134,13 @@ public class HSClientImpl implements HSClient {
 		for (String col : columns) {
 			if (HSUtils.isBlank(col)) {
 				throw new IllegalArgumentException("blank column name:" + col);
+			}
+		}
+		if (fcolumns != null && fcolumns.length != 0) {
+			for (String col : fcolumns) {
+				if (HSUtils.isBlank(col)) {
+					throw new IllegalArgumentException("blank fcolumn name:" + col);
+				}
 			}
 		}
 	}
@@ -278,10 +293,16 @@ public class HSClientImpl implements HSClient {
 	public ResultSet find(int indexId, String[] keys, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
+		return this.find(indexId, keys, operator, limit, offset, null );
+	}
+
+	public ResultSet find(int indexId, String[] keys, FindOperator operator,
+			int limit, int offset, Filter[] filters ) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
 		IndexRecord indexRecord = this.getRecord(indexId);
 		Command cmd = this.commandFactory.createFindCommand(String
 				.valueOf(indexId), operator, keys, limit, offset,
-				indexRecord.fieldList);
+				indexRecord.fieldList, filters);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
 		return (ResultSet) cmd.getResult();
@@ -383,11 +404,11 @@ public class HSClientImpl implements HSClient {
 	}
 
 	public boolean openIndex(int indexId, String dbname, String tableName,
-			String indexName, String[] columns) throws InterruptedException,
+			String indexName, String[] columns, String[] fcolumns) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
-		this.checkParams(dbname, tableName, indexName, columns);
+		this.checkParams(dbname, tableName, indexName, columns, fcolumns);
 		IndexRecord record = new IndexRecord(indexId, dbname, tableName,
-				indexName, columns);
+				indexName, columns, fcolumns);
 		this.indexMap.put(indexId, record);
 
 		List<Session> sessionList = this.connector.getSessionList();
@@ -398,13 +419,19 @@ public class HSClientImpl implements HSClient {
 		boolean result = true;
 		for (Session session : sessionList) {
 			Command cmd = this.commandFactory.createOpenIndexCommand(String
-					.valueOf(indexId), dbname, tableName, indexName, columns);
+					.valueOf(indexId), dbname, tableName, indexName, columns, fcolumns);
 			session.write(cmd);
 			this.awaitResponse(cmd);
 			result = result && cmd.getResponseStatus() == 0;
 		}
 		return result;
 
+	}
+
+	public boolean openIndex(int indexId, String dbname, String tableName,
+			String indexName, String[] columns) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+			return this.openIndex(indexId, dbname, tableName, indexName, columns, null);
 	}
 
 	private void awaitResponse(Command cmd) throws InterruptedException,

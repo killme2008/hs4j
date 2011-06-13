@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.impl.ResultSetImpl;
 import com.google.code.hs4j.network.buffer.IoBuffer;
@@ -28,15 +29,21 @@ import com.google.code.hs4j.utils.HSUtils;
  * @date 2010-11-27
  */
 public class FindCommand extends AbstractCommand {
+	private static final Filter[] EMPTY_FILTER = new Filter[0];
 	private final String id;
 	private final String operator;
 	private final String[] keys;
 	private final int limit;
 	private final int offset;
 	private final String[] fieldList;
+	private Filter[] filters;
 
 	public FindCommand(String id, FindOperator operator, String[] keys,
-			int limit, int offset, String[] fieldList) {
+			   int limit, int offset, String[] fieldList){
+		this(id, operator, keys, limit, offset, fieldList, null);
+	}
+	public FindCommand(String id, FindOperator operator, String[] keys,
+					   int limit, int offset, String[] fieldList, Filter[] filters) {
 		super();
 		this.id = id;
 		this.operator = operator.getValue();
@@ -44,6 +51,10 @@ public class FindCommand extends AbstractCommand {
 		this.limit = limit;
 		this.offset = offset;
 		this.fieldList = fieldList;
+		if(filters !=null)
+			this.filters = filters;
+		else
+			this.filters = EMPTY_FILTER;
 	}
 
 	@Override
@@ -112,10 +123,26 @@ public class FindCommand extends AbstractCommand {
 
 		byte[][] keyBytes = HSUtils.getByteArrayFromStringArray(keys,this.encoding);
 		
+		int flen =  filters.length;
+		String ftype[] = new String[flen];
+		String fop[] = new String[flen];
+		byte fvals[][][] = new byte[flen][][];
+		
+		int filterAllLength=0;
+		for(int i=0; i< flen;i++) {
+			Filter f = filters[i];
+			ftype[i] = f.getTyep().getValue();
+			fop[i] = f.getOperator().getValue();
+			fvals[i] = HSUtils.getByteArrayFromStringArray(f.getValue(), this.encoding);
+			filterAllLength +=ftype[i].length()+fop.length+this.length(fvals[i]);
+		}
+
 		int capacity = this.id.length() + 1
 				+ this.operator.length() + 1 + kenLen.length() + 1
 				+ this.length(keyBytes) + this.keys.length + limitStr.length()
-				+ 1 + offsetStr.length() + 1+1;
+				+ 1 + offsetStr.length() + 1+1
+				+ filterAllLength + flen;
+
 		IoBuffer buf = IoBuffer.allocate(capacity);
 		buf.setAutoExpand(true);
 		// id
@@ -139,6 +166,20 @@ public class FindCommand extends AbstractCommand {
 		// offset
 		this.writeToken(buf, offsetStr);
 		this.writeCommandTerminate(buf);
+
+		for(int i=0; i< flen;i++) {
+			// filter type
+			this.writeToken(buf, ftype[i]);
+			this.writeCommandTerminate(buf);
+			// filter operator
+			this.writeToken(buf, fop[i]);
+			this.writeCommandTerminate(buf);
+			// filter value
+			for(byte[] data : fvals[i]){
+				this.writeToken(buf, data);
+				this.writeCommandTerminate(buf);
+			}
+		}
 
 		buf.flip();
 		this.buffer = buf;

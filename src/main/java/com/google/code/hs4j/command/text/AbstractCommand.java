@@ -316,4 +316,11 @@ public abstract class AbstractCommand implements Command {
 		buf.put(COMMAND_TERMINATE);
 	}
 
+	@Override
+	public String toString(){
+		if(buffer !=null){
+			return String.valueOf(buffer.array());
+		}
+		return super.toString();
+	}
 }

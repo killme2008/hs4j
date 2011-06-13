@@ -13,6 +13,7 @@ package com.google.code.hs4j.command.text;
 
 import com.google.code.hs4j.Command;
 import com.google.code.hs4j.CommandFactory;
+import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.Protocol;
 
@@ -36,9 +37,9 @@ public class TextCommandFactory implements CommandFactory {
 	}
 
 	public Command createOpenIndexCommand(String id, String db,
-			String tableName, String indexName, String[] fieldList) {
+			String tableName, String indexName, String[] fieldList, String[] filterFieldList) {
 		OpenIndexCommand result = new OpenIndexCommand(id, db, tableName,
-				indexName, fieldList);
+				indexName, fieldList, filterFieldList);
 		result.setEncoding(encoding);
 		return result;
 	}
@@ -50,9 +51,9 @@ public class TextCommandFactory implements CommandFactory {
 	}
 
 	public Command createFindCommand(String id, FindOperator operator,
-			String[] keys, int limit, int offset, String[] fieldList) {
+			String[] keys, int limit, int offset, String[] fieldList, Filter[] filter) {
 		FindCommand result = new FindCommand(id, operator, keys, limit, offset,
-				fieldList);
+				fieldList, filter);
 		result.setEncoding(encoding);
 		return result;
 	}

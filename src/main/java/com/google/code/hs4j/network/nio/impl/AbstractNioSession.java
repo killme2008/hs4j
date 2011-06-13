@@ -10,6 +10,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.network.core.EventType;
@@ -318,6 +319,11 @@ public abstract class AbstractNioSession extends AbstractSession implements
 					.append(buff.capacity()).append("\n");
 
 			bufMsg.append("]");
+
+			bufMsg.append("\n");
+			for(byte b: buff.array()) bufMsg.append("0x").append(Integer.toHexString(b)).append(",");
+			bufMsg.append("\n");
+			bufMsg.append(new String(buff.array()));	
 			log.debug(bufMsg.toString());
 		}
 		return ((WritableByteChannel) channel).write(buffer.buf());

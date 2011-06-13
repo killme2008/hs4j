@@ -43,7 +43,7 @@ public interface CommandFactory {
 	 * @return
 	 */
 	public Command createOpenIndexCommand(String id, String db,
-			String tableName, String indexName, String[] fieldList);
+			String tableName, String indexName, String[] fieldList, String[] filterFieldList);
 
 	/**
 	 * Create an insert command
@@ -66,7 +66,7 @@ public interface CommandFactory {
 	 * @return
 	 */
 	public Command createFindCommand(String id, FindOperator operator,
-			String[] keys, int limit, int offset, String[] fieldList);
+			String[] keys, int limit, int offset, String[] fieldList, Filter[] filterFieldList);
 
 	/**
 	 * Create a update command

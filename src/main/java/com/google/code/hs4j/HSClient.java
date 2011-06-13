@@ -99,6 +99,32 @@ public interface HSClient {
 			TimeoutException, HandlerSocketException;
 
 	/**
+	 * Getting data from mysql, use filter
+	 * 
+	 * @param indexId
+	 *            This number must be an indexId specified by a 'open_index'
+	 *            request executed previously on the same connection.
+	 * 
+	 * @param values
+	 *            values to compare with index keys
+	 * @param operator
+	 *            specifies the comparison operation to use
+	 * @param limit
+	 *            limit fetch count
+	 * @param offset
+	 *            fetch offset
+	 * @param filters
+	 *            specifies a filter 
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public ResultSet find(int indexId, String[] keys, FindOperator operator,
+			int limit, int offset, Filter[] filters ) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
+
+	/**
 	 * Getting data from mysql
 	 * 
 	 * @param indexId
