@@ -119,7 +119,7 @@ public class HandlerSocketBinaryDecodeUnitTest extends Hs4jTestBase {
 
 	public void writeBytesHsj4(String id, byte[] bytes) throws Exception {
 		hsClient.openIndex(0, "mytest", "hs4jtest", "PRIMARY",
-				new String[] { "value" });
+				new String[] { "id", "value" });
 		ModifyStatement stmt = hsClient.createStatement(0);
 
 		stmt.setString(1, id);

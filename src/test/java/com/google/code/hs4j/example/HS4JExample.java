@@ -15,7 +15,7 @@ public class HS4JExample {
 		HSClient client = new HSClientImpl(new InetSocketAddress(9999), 20);
 		final String[] fieldList = { "user_id", "user_name", "user_email",
 				"created" };
-		System.out.println(client.openIndex(0, "mytest", "user", "INDEX_01",
+		System.out.println(client.openIndex(0, "mytest", "test_user", "NAME_MAIL_INDEX",
 				fieldList));
 		String[] values = { "kevin" };
 		ResultSet rs = client.find(0, values);
