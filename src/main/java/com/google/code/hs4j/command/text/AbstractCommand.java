@@ -315,12 +315,4 @@ public abstract class AbstractCommand implements Command {
 	protected void writeCommandTerminate(IoBuffer buf) {
 		buf.put(COMMAND_TERMINATE);
 	}
-
-	@Override
-	public String toString(){
-		if(buffer !=null){
-			return String.valueOf(buffer.array());
-		}
-		return super.toString();
-	}
 }

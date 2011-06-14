@@ -127,7 +127,7 @@ public class FindCommand extends AbstractCommand {
 		String ftype[] = new String[flen];
 		String fop[] = new String[flen];
 		String fcol[] = new String[flen];
-		byte fvals[][][] = new byte[flen][][];
+		byte fval[][] = new byte[flen][];
 		
 		int filterAllLength=0;
 		for(int i=0; i< flen;i++) {
@@ -135,15 +135,15 @@ public class FindCommand extends AbstractCommand {
 			ftype[i] = f.getTyep().getValue();
 			fop[i] = f.getOperator().getValue();
 			fcol[i] = String.valueOf(f.getColumn());
-			fvals[i] = HSUtils.getByteArrayFromStringArray(f.getValue(), this.encoding);
-			filterAllLength += ftype[i].length()+1 + fop.length+1 + fcol[i].length()+1 + this.length(fvals[i])+1;
+			fval[i] = HSUtils.decodeString(f.getValue(),this.encoding);
+			filterAllLength += ftype[i].length()+1 + fop.length+1 + fcol[i].length()+1 + fval[i].length+1;
 		}
 
 		int capacity = this.id.length() + 1
 				+ this.operator.length() + 1 + kenLen.length() + 1
 				+ this.length(keyBytes) + this.keys.length + limitStr.length()
-				+ 1 + offsetStr.length() + 1+1
-				+ filterAllLength;
+				+ 1 + offsetStr.length() + 1
+				+ filterAllLength+1;
 
 		IoBuffer buf = IoBuffer.allocate(capacity);
 		buf.setAutoExpand(true);
@@ -168,6 +168,7 @@ public class FindCommand extends AbstractCommand {
 		// offset
 		this.writeToken(buf, offsetStr);
 
+		// filter
 		for(int i=0; i< flen;i++) {
 			this.writeTokenSeparator(buf);
 			// filter type
@@ -176,16 +177,11 @@ public class FindCommand extends AbstractCommand {
 			// filter operator
 			this.writeToken(buf, fop[i]);
 			this.writeTokenSeparator(buf);
-			
+			// filter column
 			this.writeToken(buf, fcol[i]);
 			this.writeTokenSeparator(buf);
-			boolean isFirst = true;
 			// filter value
-			for(byte[] data : fvals[i]){
-				if(!isFirst) this.writeTokenSeparator(buf);
-				else isFirst = false;
-				this.writeToken(buf, data);
-			}
+			this.writeToken(buf, fval[i]);
 		}
 		this.writeCommandTerminate(buf);
 

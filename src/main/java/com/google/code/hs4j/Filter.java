@@ -10,7 +10,7 @@ public class Filter {
 	private FilterType type;
 	private FindOperator op;
 	private int col;
-	private String[] values;
+	private String value;
 
 	public enum FilterType {
 		FILTER("F"),
@@ -27,11 +27,11 @@ public class Filter {
 		}
 	}
 
-	public Filter(FilterType type, FindOperator op, int col, String[] values) {
+	public Filter(FilterType type, FindOperator op, int col, String value) {
 		this.type = type;
 		this.op = op;
 		this.col = col;
-		this.values = values;
+		this.value = value;
 	}
 
 	public FilterType getTyep() {
@@ -46,8 +46,8 @@ public class Filter {
 		return col;
 	}
 
-	public String[] getValue() {
-		return values;
+	public String getValue() {
+		return value;
 	}
 
 }
