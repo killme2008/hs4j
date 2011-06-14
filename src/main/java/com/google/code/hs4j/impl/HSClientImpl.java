@@ -152,6 +152,14 @@ public class HSClientImpl implements HSClient {
 				tableName, indexName, columns);
 	}
 
+	public IndexSession openIndexSession(String dbname, String tableName,
+			String indexName, String[] columns, String[] fcolumns) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.openIndexSession(INDEX_COUNTER.incrementAndGet(), dbname,
+				tableName, indexName, columns, fcolumns);
+	}
+
+
 	public CopyOnWriteArrayList<HSClientStateListener> getHSClientStateListeners() {
 		return this.hsClientStateListeners;
 	}

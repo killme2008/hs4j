@@ -79,12 +79,15 @@ public class OpenIndexCommand extends AbstractCommand {
 		this.writeTokenSeparator(buf);
 		// field list
 		this.writeToken(buf, join(this.fieldList));
-		this.writeCommandTerminate(buf);
 
 		// filter field list
 		if(filterFieldList.length != 0) {
+			this.writeTokenSeparator(buf);
 			this.writeToken(buf, join(this.filterFieldList));
 			this.writeCommandTerminate(buf);
+		}else{
+			this.writeCommandTerminate(buf);
+
 		}
 
 		buf.flip();

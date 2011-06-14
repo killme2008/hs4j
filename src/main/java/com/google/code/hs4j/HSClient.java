@@ -41,6 +41,26 @@ public interface HSClient {
 	public boolean isStarted();
 
 	/**
+	 * Open a IndexSession with a filter columns,please reuse
+	 * IndexSession as much as possible.
+	 * 
+	 * @param indexId
+	 * @param dbname
+	 * @param tableName
+	 * @param indexName
+	 * @param columns
+	 * @param fcolumns
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public IndexSession openIndexSession(int indexId, String dbname,
+			String tableName, String indexName, String[] columns, String[] fcolumns)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
+
+	/**
 	 * Just like openIndex method,but return a IndexSession,please reuse
 	 * IndexSession as much as possible.
 	 * 
@@ -76,6 +96,24 @@ public interface HSClient {
 			String indexName, String[] columns) throws InterruptedException,
 			TimeoutException, HandlerSocketException;
 
+	
+	/**
+	 * Open a IndexSession with a auto-generated indexId and a filter columns, please reuse
+	 * IndexSession as much as possible.
+	 * 
+	 * @param dbname
+	 * @param tableName
+	 * @param indexName
+	 * @param columns
+	 * @param fcolumns
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public IndexSession openIndexSession(String dbname, String tableName,
+			String indexName, String[] columns, String[] fcolumns) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
 	/**
 	 * Once an 'open_index' request is issued, the HandlerSocket plugin opens
 	 * the specified index and keep it open until the client connection is
@@ -96,6 +134,25 @@ public interface HSClient {
 	 */
 	public boolean openIndex(int indexId, String dbname, String tableName,
 			String indexName, String[] columns) throws InterruptedException,
+			TimeoutException, HandlerSocketException;
+
+	/**
+	 * openIndex with a filter columns.
+	 * @see #openIndex(int, String, String, String, String[])
+	 * 
+	 * @param indexId
+	 * @param dbname
+	 * @param tableName
+	 * @param indexName
+	 * @param columns
+	 * @param fclomuns
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public boolean openIndex(int indexId, String dbname, String tableName,
+			String indexName, String[] columns, String[] fcolumns) throws InterruptedException,
 			TimeoutException, HandlerSocketException;
 
 	/**

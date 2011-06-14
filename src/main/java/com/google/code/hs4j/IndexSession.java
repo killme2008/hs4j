@@ -38,6 +38,29 @@ public interface IndexSession {
 	 */
 	public String[] getColumns();
 
+	
+	/**
+	 * Getting data from mysql, use filter
+	 * 
+	 * @param keys
+	 *            keys to compare with index columns
+	 * @param operator
+	 *            specifies the comparison operation to use
+	 * @param limit
+	 *            limit fetch count
+	 * @param offset
+	 *            fetch offset
+	 * @param filters
+	 *            specifies a filter 
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public ResultSet find(String[] keys, FindOperator operator, int limit,
+			int offset, Filter[] filters) throws InterruptedException, TimeoutException,
+			HandlerSocketException;
+	
 	/**
 	 * Getting data from mysql
 	 * 

@@ -14,6 +14,7 @@ package com.google.code.hs4j.impl;
 import java.sql.ResultSet;
 import java.util.concurrent.TimeoutException;
 
+import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.IndexSession;
@@ -58,6 +59,12 @@ public class IndexSessionImpl implements IndexSession {
 	public int delete(String[] keys) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
 		return this.delete(keys, FindOperator.EQ);
+	}
+
+	public ResultSet find(String[] keys, FindOperator operator, int limit,
+			int offset, Filter[] filters) throws InterruptedException, TimeoutException,
+			HandlerSocketException {
+		return this.client.find(this.indexId, keys, operator, limit, offset, filters);
 	}
 
 	public ResultSet find(String[] keys, FindOperator operator, int limit,
