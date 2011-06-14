@@ -11,6 +11,8 @@ import java.sql.Statement;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.code.hs4j.Filter;
+import com.google.code.hs4j.Filter.FilterType;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.Hs4jTestBase;
 import com.google.code.hs4j.IndexSession;
@@ -18,13 +20,14 @@ import com.google.code.hs4j.ModifyStatement;
 
 public class IndexSessionImplUnitTest extends Hs4jTestBase {
 	private IndexSession session;
-
+	private final String[] columns = { "user_id", "user_name", "user_email", "age" };
+	private final String tableName = "test_user";
+	private final String indexName = "NAME_MAIL_INDEX";
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		final String[] columns = { "user_id", "user_name", "user_email", "age" };
-		this.session = this.hsClient.openIndexSession(dbname, "test_user",
-				"NAME_MAIL_INDEX", columns);
+		this.session = this.hsClient.openIndexSession(dbname, tableName,
+				indexName, columns);
 	}
 
 	@Test
@@ -227,6 +230,34 @@ public class IndexSessionImplUnitTest extends Hs4jTestBase {
 		assertEquals("test@163.com", rs.getString(3));
 		assertEquals(27, rs.getInt(4));
 		assertFalse(rs.next());
+	}
+	@Test
+	public void testInsertByJDBC_FindFilterByHS4J() throws Exception {
+		Connection conn = getConnection();
+		Statement stmt = conn.createStatement();
+		String[] fcolumn = {"age"};
+		IndexSession session = this.hsClient.openIndexSession(dbname, tableName,
+				indexName, columns, fcolumn);
+
+		assertEquals(
+				1,
+				stmt
+						.executeUpdate("insert into test_user values(0,'dennis','test@163.com','27','2010-11-28 13:24:00')"));
+
+		final String[] keys = { "dennis", "test@163.com" };
+		Filter[] filters ={new Filter(FilterType.FILTER,FindOperator.EQ, 0, "27")};
+		ResultSet rs = session.find(keys,FindOperator.EQ,1,0,filters);
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt(1));
+		assertEquals("dennis", rs.getString(2));
+		assertEquals("test@163.com", rs.getString(3));
+		assertEquals(27, rs.getInt(4));
+		assertFalse(rs.next());
+
+		filters = new Filter[]{new Filter(FilterType.FILTER,FindOperator.GT, 0, "27")};
+		rs = session.find(keys,FindOperator.EQ,1,0,filters);
+		assertFalse(rs.next());		
 	}
 
 }

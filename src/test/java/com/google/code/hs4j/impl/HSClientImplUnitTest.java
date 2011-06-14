@@ -11,11 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
 import com.google.code.hs4j.HSClientBuilder;
 import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.Hs4jTestBase;
+import com.google.code.hs4j.Filter.FilterType;
 import com.google.code.hs4j.exception.HandlerSocketException;
 import com.google.code.hs4j.network.core.impl.HandlerAdapter;
 import com.google.code.hs4j.network.nio.TCPController;
@@ -212,4 +214,56 @@ public class HSClientImplUnitTest extends Hs4jTestBase {
 		final String[] keys = { "dennis", "killme2008@gmail.com" };
 		this.hsClient.find(1001, keys);
 	}
+	
+	@Test
+	public void testOpenIndexFindInsertFindFindDeleteWithFilter() throws Exception {
+		int indexId = 1;
+		final String[] columns = { "user_id", "user_name", "user_email", "age" };
+		final String[] fcolumns = {"age"};
+		assertTrue(this.hsClient.openIndex(indexId, dbname, "test_user",
+				"NAME_MAIL_INDEX", columns, fcolumns));
+
+		// find null
+		final String[] keys = { "dennis", "killme2008@gmail.com" };
+		ResultSet rs = this.hsClient.find(indexId, keys);
+		assertFalse(rs.next());
+
+		// insert
+		assertTrue(this.hsClient.insert(indexId, new String[] { "0", "dennis",
+				"killme2008@gmail.com", "27", "2010-11-28 13:24:00" }));
+
+		// find once
+		rs = this.hsClient.find(indexId, keys);
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt(1));
+		assertEquals("dennis", rs.getString(2));
+		assertEquals("killme2008@gmail.com", rs.getString(3));
+		assertEquals(27, rs.getInt(4));
+		assertFalse(rs.next());
+
+		// find twice
+		rs = this.hsClient.find(indexId, new String[] { "dennis" });
+		assertTrue(rs.next());
+
+		// find three times
+		rs = this.hsClient.find(indexId, new String[] { "dennis" }, FindOperator.EQ, 1, 0, new Filter[]{new Filter(FilterType.FILTER, FindOperator.EQ, 0, "25")});
+		assertFalse(rs.next());
+		rs = this.hsClient.find(indexId, new String[] { "dennis" }, FindOperator.EQ, 1, 0, new Filter[]{new Filter(FilterType.FILTER, FindOperator.EQ, 0, "27")});
+		assertTrue(rs.next());
+
+		System.out.println(rs.getInt("user_id"));
+		assertEquals("dennis", rs.getString("user_name"));
+		assertEquals("killme2008@gmail.com", rs.getString("user_email"));
+		assertEquals(27, rs.getInt("age"));
+		assertFalse(rs.next());
+
+		// delete
+		assertEquals(1, this.hsClient.delete(indexId, keys, FindOperator.EQ));
+		// find null
+		rs = this.hsClient.find(indexId, keys);
+		assertFalse(rs.next());
+
+	}
+
 }

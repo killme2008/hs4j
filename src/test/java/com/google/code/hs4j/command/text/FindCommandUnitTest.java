@@ -7,6 +7,8 @@ import java.sql.SQLException;
 
 import org.junit.Test;
 
+import com.google.code.hs4j.Filter;
+import com.google.code.hs4j.Filter.FilterType;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.command.text.AbstractCommand.ParseState;
 import com.google.code.hs4j.network.buffer.IoBuffer;
@@ -22,6 +24,17 @@ public class FindCommandUnitTest extends AbstractCommandUnitTest {
 		final String[] fieldList = { "id", "name", "password" };
 		return new FindCommand(id, FindOperator.EQ, keys, limit, offset,
 				fieldList);
+	}
+
+	public AbstractCommand createCommandWithFilter() {
+		final String id = "1";
+		final String[] keys = { "dennis" };
+		int limit = 40;
+		int offset = 0;
+		final String[] fieldList = { "id", "name", "password" };
+		final Filter[] filterList = { new Filter(FilterType.FILTER,FindOperator.EQ,1,"27") };
+		return new FindCommand(id, FindOperator.EQ, keys, limit, offset,
+				fieldList,filterList);
 	}
 
 	@Test
@@ -108,4 +121,19 @@ public class FindCommandUnitTest extends AbstractCommandUnitTest {
 
 		assertFalse(rs.next());
 	}
+
+	@Test
+	public void testEncodeWithFilter() {
+		AbstractCommand cmd = createCommandWithFilter();
+		assertNull(cmd.getIoBuffer());
+		cmd.encode();
+		IoBuffer buf = cmd.getIoBuffer();
+		assertNotNull(buf);
+		assertEquals(0, buf.position());
+		assertTrue(buf.limit() > 0);
+
+		assertEquals("1\t=\t1\tdennis\t40\t0\tF\t=\t1\t27\n", new String(buf.array(), 0, buf
+				.limit()));
+	}
+
 }
