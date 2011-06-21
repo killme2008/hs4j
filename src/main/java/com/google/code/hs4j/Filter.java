@@ -34,7 +34,7 @@ public class Filter {
 		this.value = value;
 	}
 
-	public FilterType getTyep() {
+	public FilterType getType() {
 		return type;
 	}
 

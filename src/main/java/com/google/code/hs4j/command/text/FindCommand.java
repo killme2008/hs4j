@@ -132,7 +132,7 @@ public class FindCommand extends AbstractCommand {
 		int filterAllLength=0;
 		for(int i=0; i< flen;i++) {
 			Filter f = filters[i];
-			ftype[i] = f.getTyep().getValue();
+			ftype[i] = f.getType().getValue();
 			fop[i] = f.getOperator().getValue();
 			fcol[i] = String.valueOf(f.getColumn());
 			fval[i] = HSUtils.decodeString(f.getValue(),this.encoding);
