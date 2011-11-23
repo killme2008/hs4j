@@ -129,12 +129,13 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		@Override
 		public void run() {
 			while (HandlerSocketConnectorImpl.this.isStarted()) {
-
+			    ReconnectRequest request=null;
+			    InetSocketAddress address=null;
 				try {
-					ReconnectRequest request = HandlerSocketConnectorImpl.this.waitingQueue
+					 request = HandlerSocketConnectorImpl.this.waitingQueue
 							.take();
 
-					InetSocketAddress address = request.getRemoteAddr();
+					 address = request.getRemoteAddr();
 
 					boolean connected = false;
 					Future<Boolean> future = HandlerSocketConnectorImpl.this
@@ -159,15 +160,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 					} finally {
 						if (!connected) {
 							// update timestamp for next reconnecting
-							request
-									.updateNextReconnectTimeStamp(HandlerSocketConnectorImpl.this.healSessionInterval
-											* request.getTries());
-							log.error("Reconnect to "
-									+ address.getAddress().getHostAddress()
-									+ ":" + address.getPort() + " fail");
-							// add to tail
-							HandlerSocketConnectorImpl.this.waitingQueue
-									.offer(request);
+							rescheduleConnectRequest(request, address);
 						} else {
 							continue;
 						}
@@ -177,9 +170,24 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 					// ignore,check status
 				} catch (Exception e) {
 					log.error("SessionMonitor connect error", e);
+					rescheduleConnectRequest(request, address);
 				}
 			}
 		}
+
+        private void rescheduleConnectRequest(ReconnectRequest request, InetSocketAddress address) {
+            if(request==null)
+                return;
+            request
+            		.updateNextReconnectTimeStamp(HandlerSocketConnectorImpl.this.healSessionInterval
+            				* request.getTries());
+            log.error("Reconnect to "
+            		+ address.getAddress().getHostAddress()
+            		+ ":" + address.getPort() + " fail");
+            // add to tail
+            HandlerSocketConnectorImpl.this.waitingQueue
+            		.offer(request);
+        }
 	}
 
 	/*
@@ -256,8 +264,7 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
 		ConnectFuture future = (ConnectFuture) key.attachment();
 		if (future == null || future.isCancelled()) {
-			key.channel().close();
-			key.cancel();
+		    cancelKey(key);
 			return;
 		}
 		try {
@@ -272,13 +279,23 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 			}
 		} catch (Exception e) {
 			future.failure(e);
-			key.cancel();
+			cancelKey(key);
 			throw new IOException("Connect to "
 					+ SystemUtils.getRawAddress(future.getRemoteAddr()) + ":"
 					+ future.getRemoteAddr().getPort() + " fail,"
 					+ e.getMessage());
 		}
 	}
+	
+   private void cancelKey(SelectionKey key) throws IOException {
+       try {
+           if (key.channel() != null)
+               key.channel().close();
+	        }  
+       finally {
+           key.cancel();
+       }
+   }
 
 	protected HandlerSocketSessionImpl createSession(SocketChannel socketChannel) {
 		final HandlerSocketSessionImpl session = (HandlerSocketSessionImpl) this
@@ -316,14 +333,22 @@ public class HandlerSocketConnectorImpl extends SocketChannelController
 		SocketChannel socketChannel = SocketChannel.open();
 		this.configureSocketChannel(socketChannel);
 		ConnectFuture future = new ConnectFuture(remoteAddr);
-		if (!socketChannel.connect(remoteAddr)) {
-			this.selectorManager.registerChannel(socketChannel,
-					SelectionKey.OP_CONNECT, future);
-		} else {
-			this.createSession(socketChannel);
-			future.setResult(true);
+		try {
+		    if (!socketChannel.connect(remoteAddr)) {
+		        this.selectorManager.registerChannel(socketChannel,
+		            SelectionKey.OP_CONNECT, future);
+		    } else {
+		        this.createSession(socketChannel);
+		        future.setResult(true);
+		    }
+		    return future;
+		 }
+		catch (IOException e) {
+		    if (socketChannel != null) {
+		        socketChannel.close();
+		    }
+		    throw e;
 		}
-		return future;
 	}
 
 	public void closeChannel(Selector selector) throws IOException {
