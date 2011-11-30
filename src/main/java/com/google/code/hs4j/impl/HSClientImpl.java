@@ -407,6 +407,28 @@ public class HSClientImpl implements HSClient {
 		return this.update(indexId, keys, values, operator, 1, 0);
 	}
 
+	protected int incr(int indexId, String[] keys, FindOperator operator,
+			int limit, int offset, byte[][] bytes)
+			throws HandlerSocketException, InterruptedException,
+			TimeoutException {
+		Command cmd = this.commandFactory.createIncrCommand(String
+				.valueOf(indexId), operator, keys, bytes, limit, offset);
+		this.connector.send(cmd);
+		this.awaitResponse(cmd);
+		return (Integer) cmd.getResult();
+	}
+
+	protected int decr(int indexId, String[] keys, FindOperator operator,
+			int limit, int offset, byte[][] bytes)
+			throws HandlerSocketException, InterruptedException,
+			TimeoutException {
+		Command cmd = this.commandFactory.createDecrCommand(String
+				.valueOf(indexId), operator, keys, bytes, limit, offset);
+		this.connector.send(cmd);
+		this.awaitResponse(cmd);
+		return (Integer) cmd.getResult();
+	}
+
 	public boolean isStarted() {
 		return this.started;
 	}

@@ -75,4 +75,20 @@ public class TextCommandFactory implements CommandFactory {
 		return result;
 	}
 
+	public Command createIncrCommand(String id, FindOperator operator,
+		String[] keys, byte[][] values, int limit, int offset) {
+		ModifyCommand result = new ModifyCommand(id, operator, keys, values,
+			limit, offset, AbstractCommand.OPERATOR_INCREMENT);
+		result.setEncoding(encoding);
+		return result;
+	}
+
+	public Command createDecrCommand(String id, FindOperator operator,
+		String[] keys, byte[][] values, int limit, int offset) {
+		ModifyCommand result = new ModifyCommand(id, operator, keys, values,
+			limit, offset, AbstractCommand.OPERATOR_DECREMENT);
+		result.setEncoding(encoding);
+		return result;
+	}
+
 }
