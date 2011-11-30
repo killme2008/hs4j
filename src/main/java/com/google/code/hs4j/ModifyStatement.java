@@ -271,4 +271,34 @@ public interface ModifyStatement {
 	public int update(String[] keys, FindOperator operator)
 			throws InterruptedException, TimeoutException,
 			HandlerSocketException;
+
+	/**
+	 * Incrment data.Offset is zero,and limit is one.
+	 *
+	 * @param indexId
+	 * @param keys
+	 * @param operator
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int incr(String[] keys, FindOperator operator)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
+
+	/**
+	 * Decrment data.Offset is zero,and limit is one.
+	 *
+	 * @param indexId
+	 * @param keys
+	 * @param operator
+	 * @return
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws HandlerSocketException
+	 */
+	public int decr(String[] keys, FindOperator operator)
+			throws InterruptedException, TimeoutException,
+			HandlerSocketException;
 }

@@ -30,6 +30,8 @@ public abstract class AbstractCommand implements Command {
 	public static final String OPERATOR_INSERT = "+";
 	public static final String OPERATOR_UPDATE = "U";
 	public static final String OPERATOR_DELETE = "D";
+	public static final String OPERATOR_INCREMENT = "+";
+	public static final String OPERATOR_DECREMENT = "-";
 
 	protected static IoBuffer TERMINATER = IoBuffer.allocate(1);
 	protected static IoBuffer SEPERATOR = IoBuffer.allocate(1);

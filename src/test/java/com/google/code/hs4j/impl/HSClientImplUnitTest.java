@@ -14,6 +14,8 @@ import org.junit.Test;
 import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.FindOperator;
 import com.google.code.hs4j.HSClient;
+import com.google.code.hs4j.ModifyStatement;
+import com.google.code.hs4j.IndexSession;
 import com.google.code.hs4j.HSClientBuilder;
 import com.google.code.hs4j.HSClientStateListener;
 import com.google.code.hs4j.Hs4jTestBase;
@@ -263,7 +265,54 @@ public class HSClientImplUnitTest extends Hs4jTestBase {
 		// find null
 		rs = this.hsClient.find(indexId, keys);
 		assertFalse(rs.next());
-
 	}
 
+	@Test
+	public void testOpenIndexInsertIncrDecrDelete() throws Exception {
+		int indexId = 1;
+		int i, result;
+		int sum = 100;
+		ResultSet rs;
+		final String[] columns = {"age"};
+		String cn;
+
+		IndexSession session = hsClient.openIndexSession(dbname, "test_user",
+				"NAME_MAIL_INDEX", columns);
+
+		// insert
+		final String[] icolumns = { "user_id", "user_name", "user_email", "age" };
+		final String[] fcolumns = { "age" };
+		assertTrue(this.hsClient.openIndex(indexId, dbname, "test_user",
+				"NAME_MAIL_INDEX", icolumns, fcolumns));
+		assertTrue(this.hsClient.insert(indexId, new String[] { "0", "dennis",
+				"killme2008@gmail.com", "7", "2010-11-28 13:24:00" }));
+
+		final String[] keys = {"dennis", "killme2008@gmail.com"};
+		ModifyStatement stmt = session.createStatement();
+		stmt.setInt(1, 1);
+
+		// increment 100
+		sum = 100;
+		for (i = 0; i < sum; i++) {
+			result=stmt.incr(keys, FindOperator.EQ);
+			assertTrue(result == 1);
+		}
+		rs = session.find(keys);
+		while(rs.next()){
+			System.out.println("increment age is: "+rs.getInt("age"));
+			assertEquals(107, rs.getInt("age"));
+		}
+		// decrement 100
+		sum = 100;
+		for (i = 0; i < sum; i++) {
+			result=stmt.decr(keys, FindOperator.EQ);
+			assertTrue(result == 1);
+		}
+		rs = session.find(keys);
+		while(rs.next()){
+			System.out.println("decrement age is: "+rs.getInt("age"));
+			assertEquals(7, rs.getInt("age"));
+		}
+		assertEquals(1, session.delete( keys, FindOperator.EQ));
+	}
 }

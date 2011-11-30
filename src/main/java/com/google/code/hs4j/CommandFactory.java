@@ -95,4 +95,32 @@ public interface CommandFactory {
 	public Command createDeleteCommand(String id, FindOperator operator,
 			String[] keys, int limit, int offset);
 
+	/**
+	 * Create a increment command
+	 *
+	 * @param id
+	 * @param operator
+	 * @param keys
+	 * @param values
+	 * @param limit
+	 * @param offset
+	 * @return
+	 */
+	public Command createIncrCommand(String id, FindOperator operator,
+		String[] keys, byte[][] values, int limit, int offset);
+
+
+	/**
+	 * Create a decrement command
+	 *
+	 * @param id
+	 * @param operator
+	 * @param keys
+	 * @param values
+	 * @param limit
+	 * @param offset
+	 * @return
+	 */
+	public Command createDecrCommand(String id, FindOperator operator,
+		String[] keys, byte[][] values, int limit, int offset);
 }

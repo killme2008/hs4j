@@ -57,6 +57,18 @@ public class HandlerSocketModifyStatement implements ModifyStatement {
 		return update(keys,operator,1,0);
 	}
 
+	public int incr(String[] keys, FindOperator operator) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.hsClientImpl.incr(indexId, keys, operator, 1,
+				0, values);
+	}
+
+	public int decr(String[] keys, FindOperator operator) throws InterruptedException,
+			TimeoutException, HandlerSocketException {
+		return this.hsClientImpl.decr(indexId, keys, operator, 1,
+				0, values);
+	}
+
 	public void setBigDecimal(int parameterIndex, BigDecimal x) {
 		setString(parameterIndex, String.valueOf(x));
 	}
