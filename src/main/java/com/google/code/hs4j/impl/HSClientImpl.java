@@ -50,6 +50,9 @@ import com.google.code.hs4j.utils.HSUtils;
  * @date 2010-11-29
  */
 public class HSClientImpl implements HSClient {
+    
+    public static final String EMPTY_STR = "";
+    
 	private boolean started = false;
 
 	private final CommandFactory commandFactory;
@@ -338,6 +341,18 @@ public class HSClientImpl implements HSClient {
 		return insert0(indexId, bytes);
 	}
 
+	public String insertIgnore(int indexId, String[] values) 
+	        throws InterruptedException, TimeoutException, 
+	        HandlerSocketException {
+	    byte[][] bytes = HSUtils.getByteArrayFromStringArray(values,this.encoding);
+	    Command cmd = this.commandFactory.createInsertIgnoreCommand(String
+                .valueOf(indexId), bytes);
+        this.connector.send(cmd);
+        this.awaitResponse(cmd);
+        
+        return cmd.getResponseStatus() == 0 ? (String)cmd.getResult() : EMPTY_STR;
+	}
+	
 	public ModifyStatement createStatement(int indexId)
 			throws HandlerSocketException {
 		IndexRecord indexRecord = getRecord(indexId);
@@ -352,6 +367,7 @@ public class HSClientImpl implements HSClient {
 				.valueOf(indexId), bytes);
 		this.connector.send(cmd);
 		this.awaitResponse(cmd);
+		
 		return cmd.getResponseStatus() == 0;
 	}
 
