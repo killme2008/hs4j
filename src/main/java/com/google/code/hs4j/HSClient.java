@@ -332,19 +332,6 @@ public interface HSClient {
     public boolean insert(int indexId, String[] values) throws InterruptedException, TimeoutException,
             HandlerSocketException;
 
-    /**
-     * Insert data and does not throw exception if it is unsuccessful
-     * 
-     * @param indexId
-     * @param values
-     *            the column values to set
-     * @return the server message received
-     * @throws InterruptedException
-     * @throws TimeoutException
-     * @throws HandlerSocketException
-     */
-    public String insertIgnore(int indexId, String[] values) throws InterruptedException, TimeoutException,
-            HandlerSocketException;
 
     /**
      * Shutdown client

@@ -196,19 +196,6 @@ public interface IndexSession {
 			TimeoutException, HandlerSocketException;
 
 	/**
-     * Insert data, not throwing an exception if it is unsuccessful
-     * 
-     * @param values
-     *            the column values to set
-     * @return the server message if successful, or an empty string if there was an error.
-     * @throws InterruptedException
-     * @throws TimeoutException
-     * @throws HandlerSocketException
-     */
-    public String insertIgnore(String[] values) throws InterruptedException,
-            TimeoutException, HandlerSocketException;
-
-	/**
 	 * Create a modify statement for this index session
 	 * 
 	 * @return
