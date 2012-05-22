@@ -54,7 +54,8 @@ public abstract class AbstractCommand implements Command {
 	protected Object result;
 	private Future<Boolean> writeFuture;
 	private String exceptionMsg;
-
+	private boolean ignoreError = false;
+	
 	public AbstractCommand() {
 		super();
 		this.latch = new CountDownLatch(1);
@@ -68,6 +69,14 @@ public abstract class AbstractCommand implements Command {
 	public void countDown() {
 		this.latch.countDown();
 
+	}
+
+	public boolean getIgnoreError() {
+	    return ignoreError;
+	}
+
+	public void setIgnoreError(final boolean ignoreError) {
+	    this.ignoreError = ignoreError;
 	}
 
 	public String getEncoding() {
@@ -231,7 +240,7 @@ public abstract class AbstractCommand implements Command {
 				}
 				int index = TERMIATER_MATCHER.matchFirst(buffer);
 				if (index > 0) {
-					if (this.responseStatus == 0) {
+					if (this.responseStatus == 0 || ignoreError) {
 						this.copyDataFromBufferToBody(buffer, index
 								- buffer.position() + 1);
 						this.decodeBody(session, this.body, index);
@@ -281,7 +290,7 @@ public abstract class AbstractCommand implements Command {
 
 	public String encodingString(byte[] data) {
 		try {
-			return new String(data, this.encoding);
+			return new String(data, 0, data.length-1, this.encoding); // skip new line
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("Unsupported encoding:" + this.encoding,
 					e);
@@ -299,7 +308,7 @@ public abstract class AbstractCommand implements Command {
 
 	protected void decodeBody(HandlerSocketSession session, byte[] body,
 			int index) {
-
+	    result = this.encodingString(body);
 	}
 
 	CountDownLatch getLatch() {

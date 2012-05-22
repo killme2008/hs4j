@@ -11,7 +11,6 @@
  */
 package com.google.code.hs4j.command.text;
 
-import com.google.code.hs4j.Filter;
 import com.google.code.hs4j.network.buffer.IoBuffer;
 import com.google.code.hs4j.utils.HSUtils;
 
