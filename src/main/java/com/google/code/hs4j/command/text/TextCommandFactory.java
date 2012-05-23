@@ -50,6 +50,13 @@ public class TextCommandFactory implements CommandFactory {
 		return result;
 	}
 
+	public Command createInsertIgnoreCommand(String id, byte[][] values) {
+        InsertCommand result = new InsertCommand(id, values);
+        result.setIgnoreError(true);
+        result.setEncoding(encoding);
+        return result;
+    }
+
 	public Command createFindCommand(String id, FindOperator operator,
 			String[] keys, int limit, int offset, String[] fieldList, Filter[] filter) {
 		FindCommand result = new FindCommand(id, operator, keys, limit, offset,

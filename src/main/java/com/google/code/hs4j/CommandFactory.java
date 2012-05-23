@@ -55,6 +55,15 @@ public interface CommandFactory {
 	public Command createInsertCommand(String id, byte[][] values);
 
 	/**
+     * Create an insert ignore command
+     * 
+     * @param id
+     * @param values
+     * @return
+     */
+    public Command createInsertIgnoreCommand(String id, byte[][] values);
+
+	/**
 	 * create a find command
 	 * 
 	 * @param id

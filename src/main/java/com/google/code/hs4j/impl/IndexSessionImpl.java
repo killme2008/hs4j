@@ -87,6 +87,11 @@ public class IndexSessionImpl implements IndexSession {
 		return this.client.insert(this.indexId, values);
 	}
 
+	public String insertIgnore(String[] values) throws InterruptedException,
+    		TimeoutException, HandlerSocketException {
+		return this.client.insertIgnore(this.indexId, values);
+	}
+
 	public int update(String[] keys, String[] values, FindOperator operator,
 			int limit, int offset) throws InterruptedException,
 			TimeoutException, HandlerSocketException {
