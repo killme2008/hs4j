@@ -1,5 +1,7 @@
 package com.github.zhongl.hs4j.kit.results;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -19,6 +21,8 @@ public class ResultSetGetters {
     final ResultSetGetter<Integer> integerResultSetGetter = new IntegerResultSetGetter();
     final ResultSetGetter<Long> longResultSetGetter = new LongResultSetGetter();
     final ResultSetGetter<String> stringResultSetGetter = new StringResultSetGetter();
+    final ResultSetGetter<BigInteger> bigIntegerResultSetGetter = new BigIntegerResultSetGetter();
+    final ResultSetGetter<BigDecimal> bigDecimalResultSetGetter = new BigDecimalResultSetGetter();
 
     map = new HashMap<Class<?>, ResultSetGetter<?>>();
     map.put(boolean.class, booleanResultSetGetter);
@@ -30,6 +34,8 @@ public class ResultSetGetters {
     map.put(long.class, longResultSetGetter);
     map.put(Long.class, longResultSetGetter);
     map.put(String.class, stringResultSetGetter);
+    map.put(BigInteger.class, bigIntegerResultSetGetter);
+    map.put(BigDecimal.class, bigDecimalResultSetGetter);
   }
 
   @SuppressWarnings("unchecked")
